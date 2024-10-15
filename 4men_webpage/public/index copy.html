@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 생성기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            width: 90%;
+            height: 550px;
+            max-width: 1200px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .left-panel {
+            padding: 20px;
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .right-panel {
+            padding: 20px;
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .left-panel {
+            border-right: 1px solid #ccc;
+        }
+        h2 {
+            font-size: 24px;
+            margin: 0px 0 10px;
+        }
+        h3 {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+        p {
+            font-size: 15px;
+            margin: 0px 0 10px;
+        }
+        textarea {
+            width: calc(100% - 20px);
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+        .keywords-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            height: 40px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            height: 40px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #619578; /* 비활성화 시 색상 변경 */
+            cursor: not-allowed; /* 커서 변경 */
+            opacity: 0.6; /* 투명도 조정 */
+        }
+        .keyword-list {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .keyword {
+            margin-right: 5px;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            position: relative;
+            font-size: 12px;
+            color: #333;
+        }
+        .keyword .remove {
+            margin-left: 5px;
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h2>발송 내용</h2>
+            <p>안녕하세요, 고객님! 여기에 내용을 입력하세요.</p>
+            <textarea id="prompt" placeholder="여기에 텍스트를 입력하세요..." spellcheck="false"></textarea>
+            
+            <h3>중요 키워드(선택)</h3>
+            <div class="keywords-container">
+                <input type="text" id="keyword-input" placeholder="키워드를 입력하세요..." spellcheck="false">
+                <button id="add-keyword">추가</button>
+            </div>
+            <div class="keyword-list" id="keyword-list"></div>
+            <button id="generate-button">이미지 생성</button>
+        </div>
+        <div class="right-panel">
+            <h2>이미지 생성 결과</h2>
+            <div class="image-container">
+                <img id="generated-image" src="basic.png" alt="생성된 이미지">
+            </div>
+            <button id="send-button">발송하기</button>
+        </div>
+    </div>
+    <script>
+        const generateButton = document.getElementById('generate-button');
+        const image = document.getElementById('generated-image');
+        const keywordsContainer = document.getElementById('keyword-list');
+        const keywordInput = document.getElementById('keyword-input');
+
+        generateButton.addEventListener('click', async () => {
+            //const prompt = document.getElementById('prompt').value;
+            let prompt = document.getElementById('prompt').value;
+
+            // 텍스트가 비어 있을 경우 기본 이미지 유지
+            if (!prompt.trim()) {
+                alert('이미지를 생성하기 위해 텍스트를 입력하세요.');
+                return;
+            }
+            // 고정적으로 보내고 싶은 말 
+            //prompt = `(${prompt})` + "괄호 안에 있는 광고 문자에서 핵심적인 할인 키워드만을 포함하고 다른 문자나 숫자는 등장하지 않게 그림을 그려줘";
+            //prompt = `(${prompt})` + "광고 문자에 대상이 되는 나라의 특징이 잘 담기게 현실적인 그림을 그려줘. 핵심적인 할인 키워드만을 포함하고 다른 글자, 숫자는 등장하지 않게도 부탁해";
+
+            generateButton.disabled = true; // 버튼 비활성화
+            let elapsedTime = 0; // 경과 시간 초기화
+            const originalText = generateButton.textContent; // 원래 텍스트 저장
+            generateButton.textContent = '이미지 생성 중... 0s'; // 텍스트 변경
+
+            const interval = setInterval(() => {
+                elapsedTime++;
+                generateButton.textContent = `이미지 생성 중... ${elapsedTime}s`; // 텍스트 업데이트
+            }, 1000); // 1초마다 업데이트
+
+            try {
+                const response = await fetch('/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+                image.src = data.imageUrl;
+            } catch (error) {
+                console.error(error);
+                alert('이미지 생성 실패');
+            } finally {
+                clearInterval(interval); // 타이머 정지
+                generateButton.textContent = originalText; // 원래 텍스트로 복원
+                generateButton.disabled = false; // 버튼 활성화
+            }
+        });
+
+        document.getElementById('add-keyword').addEventListener('click', () => {
+            const keyword = keywordInput.value.trim(); // 
+            if (keyword) {
+                const keywordElement = document.createElement('div');
+                keywordElement.className = 'keyword';
+                keywordElement.textContent = keyword;
+
+                // X 버튼 추가
+                const removeButton = document.createElement('span');
+                removeButton.textContent = 'X';
+                removeButton.className = 'remove';
+                removeButton.onclick = () => {
+                    keywordsContainer.removeChild(keywordElement);
+                };
+
+                keywordElement.appendChild(removeButton);
+                keywordsContainer.appendChild(keywordElement);
+                keywordInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
+
+<!-- 안녕하세요, 고객님!
+여행의 즐거움을 더해드릴 기쁜 소식을 전해드립니다. 
+현재 도쿄행 비행기에 대해 30% 할인 이벤트를 진행하고 있습니다!
+이 특별한 기회를 통해 일본의 매력적인 문화와 맛있는 음식을 경험해보세요.
+도쿄는 다양한 관광 명소와 쇼핑, 맛집이 가득한 도시입니다.
+할인 기간은 한정되어 있으니, 서둘러 예약하시기 바랍니다. 자세한 사항은 저희 홈페이지를 방문하시거나 고객센터로 문의해 주시면 친절히 안내해 드리겠습니다.
+많은 관심과 사랑 부탁드립니다!
+감사합니다! -->

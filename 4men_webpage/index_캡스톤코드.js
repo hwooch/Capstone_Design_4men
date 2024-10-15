@@ -83,8 +83,7 @@ app.post('/generate-image', async (req, res) => {
                 size: "1024x1024",
             });
         } else { // 기본
-            //finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue +' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
-            finalPrompt = `${generatedPrompt}`; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
+            finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue +' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
             response = await openai.images.generate({
                 model: "dall-e-3", // ""
                 prompt: finalPrompt,
