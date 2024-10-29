@@ -1,0 +1,320 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 95%;
+    /* height: 100vh; */
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 95%;
+    max-width: 1400px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin: 0 auto;
+}
+
+.left-panel {
+    padding: 20px;
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #ccc;
+}
+
+.middle-panel {
+    padding: 20px;
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #ccc;
+}
+
+.right-panel {
+    padding: 20px;
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    /* justify-content: space-between; */
+}
+
+h2 {
+    font-size: 24px;
+    margin: 0px 0 10px;
+}
+
+h3 {
+    font-size: 18px;
+    /* margin: 50px 0; */
+}
+
+p {
+    font-size: 15px;
+    margin: 10px 0 10px;
+}
+
+textarea {
+    width: calc(100% - 20px);
+    height: 300px;
+    min-height: 50px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+}
+
+.keywords-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+input[type="text"] {
+    flex: 1;
+
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+    height: 40px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.button-group button {
+    margin-left: 14px;
+    padding: 1px 12px;
+    border: none;
+    border-radius: 10px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    height: auto;
+}
+
+.button-group button.selected {
+    background-color: #186428;
+}
+
+.image-container-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.image-container-generate img {
+    width: 80%;
+    height: auto;
+    border-radius: 8px;
+    margin: auto;
+    display: block;
+}
+
+.image-container-history {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    /* 중앙 정렬 추가 */
+}
+
+.image-container-history button {
+    margin: auto;
+    /* 버튼 간격 조정 */
+}
+
+.image-container-history img {
+    margin-top: 10px;
+    width: calc(35% - 10px);
+    border-radius: 8px;
+    margin: auto;
+    display: block;
+    /* 중앙 정렬을 위해 display:block 추가 */
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    height: 40px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+button:disabled {
+    background-color: #619578;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* -----------------------------------------------  */
+.phonenumbeadd-button {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.phonenumber-list {
+    margin-top: 10px;
+    max-height: 150px;
+    display: block;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.phonenumber {
+    margin-right: 5px;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    position: relative;
+    font-size: 12px;
+    color: #333;
+}
+
+.phonenumber .remove {
+    margin-left: 5px;
+    cursor: pointer;
+    color: red;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#phonenumber-input {
+    font-size: 12px;
+    flex: 1;
+
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+    height: 20px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.send-button-container {
+    margin-top: auto;
+    width: 100%;
+}
+
+.phone-group {
+    margin-bottom: 250px;
+}
+
+#send-button {
+    width: 100%;
+    padding: 10px;
+}
+
+
+/* -----------------------------------------------  */
+
+/* 팝업 스타일 추가 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-top: 60px;
+    
+}
+
+.modal-content {
+    background-color: #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 1000px;
+    height: 800px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#send-history-button {
+    background-color: #28a745;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    border: none;
+}
+
+#send-history-button:hover {
+    background-color: #218838;
+}
+
+.history-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* 여러 줄로 감싸기 */
+    justify-content: space-between;
+    /* 요소 간의 간격 조정 */
+    max-height: 700px;
+    /* 최대 높이 설정 */
+    overflow-y: auto;
+    /* 세로 스크롤바 추가 */
+}
+
+.history-item {
+    width: calc(50% - 10px);
+    /* 각 항목의 너비를 50%로 설정하고 간격을 고려 */
+    margin-bottom: 20px;
+    margin-right: 10px;
+    /* 아래쪽 여백 추가 */
+    padding: 10px;
+    background-color: #f0f0f0;
+    /* 배경 색상 */
+    border-radius: 4px;
+    /* 모서리 둥글게 */
+    box-sizing: border-box;
+    /* 패딩을 포함한 크기 계산 */
+}
