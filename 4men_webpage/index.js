@@ -19,16 +19,16 @@ app.post('/generate-image', async (req, res) => {
     const { prompt, aspect, mood } = req.body;
     console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
 
+    let model, promEngine;
     let moodValue = mood;
+
     if (moodValue == '기본 분위기') {
         moodValue = "";
     }
-    
 
     //let promEngine = "question : 지금 바로 제주도로 떠나보세요! 숙박 최대 30% 할인 혜택 🎉한정된 기간 동안만 제공되는 특별 프로모션! 힐링 가득한 제주에서 아름다운 추억을 만들어보세요.🔹 혜택: 숙박 30% 할인🔹 기간: 00월 00일 ~ 00월 00일🔹 예약 바로가기: [링크] 지금 예약하고 제주도에서 힐링하세요! ✈️, answer : 제주도 랜드마크 이미지를 바탕으로 30% 할인을 강조하는 광고 이미지를 그리는데 (30% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘, question : 지금 바로 브라질로 떠나세요! 항공권 50% 할인 혜택 🎉 한정 기간 동안만 가능한 특별 할인 이벤트! 다채로운 문화와 자연의 경이로움을 경험해보세요. 🔹 혜택: 항공권 50% 할인 🔹 기간: 00월 00일 ~ 00월 00일 🔹 예약 바로가기: [링크] 지금 예약하고 환상적인 브라질을 만나보세요! 🌍, answer : 브라질 랜드마크 이미지를 바탕으로 50% 할인을 강조하는 광고 이미지를 그리는데 (50% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘. question :"
     //let promEngine = "중요 키워드를 3개 정도 뽑아서 한 문장으로 짧게 요약해줘. 그리고 그 중에서 포스터에 들어갈 강조될 문장은 뭐인것같아?"
 
-    let model, promEngine;
 
     // if (aspect === '자연') { // 선택에 따라 모델 다르게 선택
     //     model = "gpt-4o-mini";
@@ -37,9 +37,11 @@ app.post('/generate-image', async (req, res) => {
     // } else {
     //     model = "gpt-4o-mini";
     // }
+
     model = "gpt-4o-mini";
     promEngine = `이 광고 문자의 주제를 두개 단어 혹은 세개 단어 정도로 요약해봐`;
-    //프롬프트 생성  중요 키워드추출하는 엔지니어링
+
+    //프롬프트 생성, 중요 키워드추출하는 엔지니어링
     try {
         const completion = await openai.chat.completions.create({
             model: model,
@@ -66,6 +68,7 @@ app.post('/generate-image', async (req, res) => {
         let response;
         let finalPrompt;
         let body;
+
         // OpenAI API를 호출하여 이미지 생성
         if (aspect === '자연') {
             finalPrompt = `${generatedPrompt}` + ' 그리고 자연을 중점으로 그릴거고' + moodValue + ' 느낌으로 그려줘'; // 1 대신 "자연 형식으로 바꿔줘" 삽입
@@ -76,15 +79,6 @@ app.post('/generate-image', async (req, res) => {
                 size: "1024x1024",
             });
         } else if (aspect === '포스터') {
-            // OpenAI API를 호출하여 이미지 생성
-            //finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue + ' 느낌으로 그려줘'; // 2 대신 "포스터 형식으로 바꿔줘" 삽입
-            // response = await openai.images.generate({
-            //     model: "dall-e-3", // ""
-            //     prompt: finalPrompt,
-            //     n: 1,
-            //     size: "1024x1024",
-            // });
-
             // Ideogram API를 호출하여 이미지 생성
             finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
             console.log(11111);
@@ -98,9 +92,9 @@ app.post('/generate-image', async (req, res) => {
                 body: JSON.stringify({
                     "image_request": {
                         "prompt": finalPrompt,
-                        "model": "V_2_TURBO",
+                        "model": "V_2_TURBO", // V_1 , V_1_TURBO , V_2 , V_2_TURBO ( 총 4개 있음
                         "negative_prompt": "text, logo, watermark",
-                        "style_type": "AUTO"
+                        "style_type": "AUTO" //ANIME , AUTO , DESIGN , GENERAL , REALISTIC , RENDER_3D ( 총 6개있음
                     }
                 }),
             });
@@ -119,8 +113,8 @@ app.post('/generate-image', async (req, res) => {
         }
         console.log('넘겨지는 최종 문장 :', finalPrompt);
 
-        //const imageUrl = response.data[0].url;
-        const imageUrl = body.data[0].url;
+        //const imageUrl = response.data[0].url; // DALL-E 일때 활성화
+        const imageUrl = body.data[0].url; // Ideogram 일때 활성화
 
         res.json({ imageUrl });
         

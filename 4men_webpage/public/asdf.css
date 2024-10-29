@@ -3,8 +3,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 95%;
-    /* height: 100vh; */
+    height: 100%;
     margin: 20px;
     background-color: #f4f4f4;
 }
@@ -17,12 +16,13 @@ body {
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     position: relative;
     margin: 0 auto;
 }
 
 .left-panel {
+    /* 왼쪽 패널 */
     padding: 20px;
     width: 35%;
     display: flex;
@@ -32,6 +32,7 @@ body {
 }
 
 .middle-panel {
+    /* 가운데 패널 */
     padding: 20px;
     width: 45%;
     display: flex;
@@ -41,12 +42,12 @@ body {
 }
 
 .right-panel {
+    /* 오른쪽 패널 */
     padding: 20px;
     width: 20%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* justify-content: space-between; */
 }
 
 h2 {
@@ -56,7 +57,6 @@ h2 {
 
 h3 {
     font-size: 18px;
-    /* margin: 50px 0; */
 }
 
 p {
@@ -65,6 +65,7 @@ p {
 }
 
 textarea {
+    /* 발송 내용 텍스트 입력창 */
     width: calc(100% - 20px);
     height: 300px;
     min-height: 50px;
@@ -79,6 +80,7 @@ textarea {
 }
 
 .keywords-container {
+    /* 이미지에 포함시키고 싶은 텍스트 입력창을 감싸는 컨테이너*/
     display: flex;
     align-items: center;
     margin-bottom: 10px;
@@ -86,6 +88,7 @@ textarea {
 }
 
 input[type="text"] {
+    /* 이미지에 포함시키고 싶은 텍스트 입력창 */
     flex: 1;
 
     padding: 10px;
@@ -97,12 +100,14 @@ input[type="text"] {
 }
 
 .button-group {
+    /* 생성유형과 발송내용의 버튼 컨테이너 */
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 10px;
 }
 
 .button-group button {
+    /* 그 컨테이너 속 버튼 속성들 */
     margin-left: 14px;
     padding: 1px 12px;
     border: none;
@@ -115,10 +120,12 @@ input[type="text"] {
 }
 
 .button-group button.selected {
+    /* 생성유형의 버튼들이 선택되었을때 색상 변경 */
     background-color: #186428;
 }
 
 .image-container-text {
+    /* 이미지 생성 결과 글씨 속성 */
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -126,6 +133,7 @@ input[type="text"] {
 }
 
 .image-container-generate img {
+    /* 생성된 이미지 속성 */
     width: 80%;
     height: auto;
     border-radius: 8px;
@@ -134,27 +142,28 @@ input[type="text"] {
 }
 
 .image-container-history {
+    /* 하단의 생성되었던 이미지 컨테이너 */
     margin-top: 10px;
     display: flex;
     align-items: center;
-    /* 중앙 정렬 추가 */
 }
 
 .image-container-history button {
+    /* 생성되었던 이미지 이동 버튼 */
     margin: auto;
-    /* 버튼 간격 조정 */
 }
 
 .image-container-history img {
+    /* 하단의 생성되었던 이미지 속성 */
     margin-top: 10px;
     width: calc(35% - 10px);
     border-radius: 8px;
     margin: auto;
     display: block;
-    /* 중앙 정렬을 위해 display:block 추가 */
 }
 
 button {
+    /* 모든 버튼의 속성들 */
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
@@ -166,23 +175,31 @@ button {
 }
 
 button:hover {
+    /* 버튼에 마우스 올려둘때 색상 변화 */
     background-color: #218838;
 }
 
 button:disabled {
+    /* 이미지 생성 버튼이 비활성화 되었을때 속성 */
     background-color: #619578;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
-/* -----------------------------------------------  */
-.phonenumbeadd-button {
+.phone-group {
+    /* 주소록 칸인데 현재 미구현으로 빈칸 남겨두기위해 margin 속성만 추가 */
+    margin-bottom: 250px;
+}
+
+.Addphonebook-button {
+    /* 주소록 추가 버튼 */
     margin-top: 5px;
     margin-bottom: 20px;
     color: white;
 }
 
 .phonenumber-list {
+    /* 전화번호 입력하고 추가할때 나타나는 리스트 컨테이너 */
     margin-top: 10px;
     max-height: 150px;
     display: block;
@@ -192,6 +209,7 @@ button:disabled {
 }
 
 .phonenumber {
+    /* 추가한 전화번호 */
     margin-right: 5px;
     margin-bottom: 10px;
     padding: 5px 10px;
@@ -203,6 +221,7 @@ button:disabled {
 }
 
 .phonenumber .remove {
+    /* 전화번호 오른쪽의 X 버튼 */
     margin-left: 5px;
     cursor: pointer;
     color: red;
@@ -211,6 +230,7 @@ button:disabled {
 }
 
 #phonenumber-input {
+    /* 전화번호 입력 텍스트 칸 */
     font-size: 12px;
     flex: 1;
 
@@ -222,23 +242,33 @@ button:disabled {
 }
 
 .send-button-container {
+    /* 발송하기 버튼 컨테이너 */
     margin-top: auto;
     width: 100%;
 }
 
-.phone-group {
-    margin-bottom: 250px;
-}
-
 #send-button {
+    /* 발송하기 버튼 */
     width: 100%;
     padding: 10px;
 }
 
+#send-history-button { 
+    /* 발송 내역 버튼 속성*/
+    background-color: #28a745;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    border: none;
+}
 
+#send-history-button:hover {
+    /* 발송 내역 버튼에 마우스 올려두었을 때 */
+    background-color: #218838;
+}
 /* -----------------------------------------------  */
 
-/* 팝업 스타일 추가 */
+/* 발송내역의 팝업 속성들 */
 .modal {
     display: none;
     position: fixed;
@@ -250,7 +280,7 @@ button:disabled {
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
     padding-top: 60px;
-    
+
 }
 
 .modal-content {
@@ -267,7 +297,8 @@ button:disabled {
 }
 
 .close {
-    color: #aaa;
+    /* X 버튼 */
+    color: #ff0000;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -275,46 +306,30 @@ button:disabled {
 
 .close:hover,
 .close:focus {
+    /* X 버튼에 마우스 올려두었을때 색상 변경 */
     color: black;
     text-decoration: none;
     cursor: pointer;
 }
 
-#send-history-button {
-    background-color: #28a745;
-    color: white;
-    border-radius: 5px;
-    padding: 10px 20px;
-    border: none;
-}
 
-#send-history-button:hover {
-    background-color: #218838;
-}
 
 .history-container {
+    /* 발송 내역 리스트 컨테이너*/
     display: flex;
     flex-wrap: wrap;
-    /* 여러 줄로 감싸기 */
     justify-content: space-between;
-    /* 요소 간의 간격 조정 */
     max-height: 700px;
-    /* 최대 높이 설정 */
     overflow-y: auto;
-    /* 세로 스크롤바 추가 */
 }
 
 .history-item {
+    /* 발송 내역 리스트 내의 텍스트들 */
     width: calc(50% - 10px);
-    /* 각 항목의 너비를 50%로 설정하고 간격을 고려 */
     margin-bottom: 20px;
     margin-right: 10px;
-    /* 아래쪽 여백 추가 */
     padding: 10px;
     background-color: #f0f0f0;
-    /* 배경 색상 */
     border-radius: 4px;
-    /* 모서리 둥글게 */
     box-sizing: border-box;
-    /* 패딩을 포함한 크기 계산 */
 }
