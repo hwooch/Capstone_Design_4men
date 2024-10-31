@@ -3,11 +3,28 @@ const OpenAI = require('openai');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const mysql = require('mysql2');
 
 const translate = require('@vitalets/google-translate-api');
 const app = express();
 const port = 3000;
 const openai = new OpenAI();
+
+//객체 생성
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '1234',
+    database: 'precapstonedb'
+  });
+// db연결
+db.connect(err => {
+if (err) {
+    console.error('DB 연결 실패:', err);
+    return;
+}
+console.log('MySQL 연결 성공!');
+});
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -125,6 +142,24 @@ app.post('/generate-image', async (req, res) => {
         res.status(500).json({ error: '이미지 생성 실패' });
     }
 });
+
+// 주소록 목록을 조회하는 API 엔드포인트
+app.get('/api/phonebook', (req, res) => {
+    const query = 'SELECT * FROM phone_book';
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('쿼리 실패:', err);
+        res.status(500).send('DB 조회 실패');
+        return;
+      }
+      const phone_book = results.map( item => item.book_name);
+      console.log(phone_book);
+      res.send(phone_book);
+      //res.json(results); // 쿼리 결과를 JSON으로 응답
+    });
+  });
+
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 

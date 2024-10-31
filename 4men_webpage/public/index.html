@@ -65,7 +65,8 @@
 
         <div class="right-panel">
             <h2>주소록</h2>
-            <div class="phone-group" id="phone-group"></div>
+            <div class="phone-group" id="phone-group">
+            </div>
             <button id="Addphonebook-button" class="Addphonebook-button">주소록 추가</button>
             <!------------------------------------------------------------------------------------->
             <h2>수신 대상</h2>
@@ -98,8 +99,55 @@
 
 
     <script>
+        
         const generateButton = document.getElementById('generate-button'); // 이미지 생성 버튼
         const image = document.getElementById('generated-image'); // 생성된 이미지
+        const addPhoneBookButton = document.getElementById('Addphonebook-button');  //주소록 추가 버튼
+
+        const selectedPhoneBook = [];
+        //화면 로드 시 db에서 주소록 불러옴    
+        window.onload = () => {
+            fetch('/api/phonebook')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 실패했습니다.');
+                }
+                return response.json(); // 응답을 JSON으로 변환
+            })
+            .then(data => {
+                // 리스트 컨테이너 요소 선택
+                const listContainer = document.getElementById("phone-group");
+
+                // 각 행에 대해 리스트 아이템을 동적으로 생성
+                data.forEach(row => {
+                const listItem = document.createElement("div");
+                listItem.className = "phonebook-list";
+                listItem.textContent = row;
+
+                // 리스트 아이템에 클릭 이벤트 추가
+                listItem.addEventListener("click", function() {
+                    this.classList.toggle("selected");
+
+                    if (this.classList.contains("selected")) {
+                        selectedPhoneBook.push(this.textContent); // 아이템 추가
+                    } else {
+                        // 선택 해제 시 배열에서 제거
+                        const index = selectedPhoneBook.indexOf(this.textContent);
+                        if (index > -1) {
+                            selectedPhoneBook.splice(index, 1);
+                        }
+                    }
+                });
+
+                // 리스트 컨테이너에 아이템 추가
+                listContainer.appendChild(listItem);
+                });
+                //console.log('응답 데이터:', data);
+            })
+            .catch(err => {
+                console.error('요청 실패:', err);
+            });
+        };
 
         let selectedAspect = ''; // 선택된 주요 관점
         let selectedMood = ''; // 선택된 그림 분위기
@@ -182,6 +230,16 @@
             }
         });
 
+        addPhoneBookButton.addEventListener('click',() => {
+            console.log(selectedPhoneBook);
+            // 선택된 상태를 원래 상태로 되돌리기
+            const listItems = document.querySelectorAll(".phonebook-list");
+            listItems.forEach(item => {
+            item.classList.remove("selected"); // CSS 클래스 제거
+            });
+            selectedPhoneBook.length = 0; // 배열 초기화
+            console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
+        });
 
         const phonenumbersContainer = document.getElementById('phonenumber-list'); // 핸드폰 번호 리스트 컨테이너
         const phonenumberInput = document.getElementById('phonenumber-input'); // 핸드폰 번호 입력 창

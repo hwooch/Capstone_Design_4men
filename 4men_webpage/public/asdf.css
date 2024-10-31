@@ -188,8 +188,22 @@ button:disabled {
 
 .phone-group {
     /* 주소록 칸인데 현재 미구현으로 빈칸 남겨두기위해 margin 속성만 추가 */
-    margin-bottom: 250px;
+    width: 250px;   /* div의 너비 */
+    height: 200px;  /* div의 높이 */
+    border: 1px solid #ccc;
+    overflow-y: auto; /* div 내부 스크롤 활성화 */
+    padding: 10px;
 }
+
+.phonebook-list{
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 선택된 아이템에 적용될 스타일 */
+.selected {
+    background-color: lightblue;
+  }
 
 .Addphonebook-button {
     /* 주소록 추가 버튼 */
