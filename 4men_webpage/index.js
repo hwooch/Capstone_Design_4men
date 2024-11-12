@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const OpenAI = require('openai');
 const cors = require('cors');
@@ -9,6 +11,8 @@ const translate = require('@vitalets/google-translate-api');
 const app = express();
 const port = 3000;
 const openai = new OpenAI();
+console.log('OpenAI API Key:', process.env.OPENAI_API_KEY , "IDEOGRAM_API_KEY:", process.env.IDEOGRAM_API_KEY);
+
 
 //객체 생성
 const db = mysql.createConnection({
@@ -29,13 +33,13 @@ console.log('MySQL 연결 성공!');
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-openai.apiKey = "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";
+openai.apiKey = process.env.OPENAI_API_KEY;
 
 // 이미지 생성 엔드포인트
 app.post('/generate-image', async (req, res) => {
     const { prompt, aspect, mood } = req.body;
     console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
-
+    
     let model, promEngine;
     let moodValue = mood;
 
@@ -98,12 +102,10 @@ app.post('/generate-image', async (req, res) => {
         } else if (aspect === '포스터') {
             // Ideogram API를 호출하여 이미지 생성
             finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
-            console.log(11111);
-
             response = await fetch("https://api.ideogram.ai/generate", {
                 method: "POST",
                 headers: {
-                    "Api-Key": "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSWBT44229ewv4__8yBikCUfHFABkwEXQ",
+                    "Api-Key": process.env.IDEOGRAM_API_KEY,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -115,7 +117,6 @@ app.post('/generate-image', async (req, res) => {
                     }
                 }),
             });
-            console.log(2222);
             body = await response.json();
             console.log(body.data[0].url);
             
