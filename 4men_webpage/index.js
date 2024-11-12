@@ -1,3 +1,4 @@
+// 필수 모듈 불러오기
 const express = require('express');
 const OpenAI = require('openai');
 const cors = require('cors');
@@ -5,9 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
+const fetch = require('node-fetch');
 
-
-const translate = require('@vitalets/google-translate-api');
+// 서버 및 OpenAI API 초기 설정
 const app = express();
 const port = 3000;
 const openai = new OpenAI();
@@ -39,35 +40,107 @@ app.use(express.json());
 
 openai.apiKey = "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";
 
+// 미들웨어 설정
+app.use(cors({ origin: '*' })); // 모든 출처 허용 (테스트용)
+app.use(express.json()); // JSON 요청 본문을 파싱
+
+
+// 형태별 프롬프트 상수 설정
+const STYLES = {
+    LOGO: "modern and minimalist logo design, simple lines and monochrome colors",
+    BANNER: "dynamic and vibrant banner design, high contrast, professional layout",
+    THUMBNAIL: "eye-catching thumbnail for a YouTube video, bold and colorful",
+    PRODUCT_IMAGE: "3D rendered product image, high-quality, realistic lighting",
+    ILLUSTRATION: "hand-drawn style, whimsical, colorful illustration of a cityscape",
+    INFOGRAPHIC: "clean and organized infographic layout, pastel colors, icons and charts"
+};
+
+// 한글을 영어로 번역하는 함수
+async function translateToEnglish(text) {
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "user", content: `Please translate the following text to English: ${text}` }
+            ]
+        });
+        return response.choices[0].message.content.trim();
+    } catch (error) {
+        console.error('번역 중 오류 발생:', error);
+        throw new Error('번역 실패');
+    }
+}
+
+// Ideogram을 통한 이미지 생성 함수
+async function useIdeo(mood, finalPrompt) {
+    console.log("이데오 사용 번역 전 프롬프트: " + finalPrompt);
+    try {
+        finalPrompt = await translateToEnglish(finalPrompt); // 한국어 프롬프트를 영어로 번역
+        console.log("이데오 사용 번역 후 프롬프트: " + finalPrompt);
+        
+        const response = await fetch("https://api.ideogram.ai/generate", {
+            method: "POST",
+            headers: {
+                "Api-Key": "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSWBT44229ewv4__8yBikCUfHFABkwEXQ",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "image_request": {
+                    "prompt": finalPrompt,
+                    "model": "V_2_TURBO",
+                    "negative_prompt": "text, logo, watermark", // 생성 이미지에서 텍스트, 로고, 워터마크 제외
+                    "style_type": mood // style_type을 파라미터로 전달
+                }
+            }),
+        });
+
+        const body = await response.json();
+        const imageUrl = body.data[0].url;
+        console.log(`사용된 모델: V_2_TURBO (Ideogram), 스타일: ${mood}`);
+        return imageUrl;
+
+    } catch (error) {
+        console.error('이미지 생성 중 오류 발생:', error);
+        throw new Error('이미지 생성 실패');
+    }
+}
+
+// DALL_E를 통한 이미지 생성 함수
+async function useDall(mood, finalPrompt) {
+    console.log("달이 사용 번역 전 최종 프롬프트: " + finalPrompt);
+    try {
+        finalPrompt = finalPrompt + " 그림풍은 " + mood; // mood 추가
+        finalPrompt = await translateToEnglish(finalPrompt); // 한국어 프롬프트를 영어로 번역
+        console.log("달이 사용 번역 후 프롬프트: " + finalPrompt);
+
+        const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: finalPrompt,
+            n: 1,
+            size: "1024x1024",
+        });
+        const imageUrl = response.data[0].url;
+        return imageUrl;
+    } catch (error) {
+        console.error('DALL-E 이미지 생성 중 오류 발생:', error);
+        throw new Error('DALL-E 이미지 생성 실패');
+    }
+}
+
+
 // 이미지 생성 엔드포인트
 app.post('/generate-image', async (req, res) => {
+    // 클라이언트 요청에서 prompt, aspect, mood 변수 추출
     const { prompt, aspect, mood } = req.body;
-    console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
+    console.log('웹페이지로부터 넘겨받은 문장:', prompt, '\n생성 유형:', aspect, '\n분위기:', mood);
 
-    let model, promEngine;
-    let moodValue = mood;
+    // 사용자 입력 텍스트에 광고용 프롬프트 추가
+    const styleDescription = STYLES[aspect] || ""; // aspect에 따라 스타일 설명 가져오기
+    const finalPrompt = `${prompt} 이 내용을 광고하는 이미지를 ${aspect} 형태로 생성해줘. 이미지에는 텍스트가 전혀 없어야 해. ${styleDescription}`;
+    let imageUrl;
 
-    if (moodValue == '기본 분위기') {
-        moodValue = "";
-    }
-
-    //let promEngine = "question : 지금 바로 제주도로 떠나보세요! 숙박 최대 30% 할인 혜택 🎉한정된 기간 동안만 제공되는 특별 프로모션! 힐링 가득한 제주에서 아름다운 추억을 만들어보세요.🔹 혜택: 숙박 30% 할인🔹 기간: 00월 00일 ~ 00월 00일🔹 예약 바로가기: [링크] 지금 예약하고 제주도에서 힐링하세요! ✈️, answer : 제주도 랜드마크 이미지를 바탕으로 30% 할인을 강조하는 광고 이미지를 그리는데 (30% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘, question : 지금 바로 브라질로 떠나세요! 항공권 50% 할인 혜택 🎉 한정 기간 동안만 가능한 특별 할인 이벤트! 다채로운 문화와 자연의 경이로움을 경험해보세요. 🔹 혜택: 항공권 50% 할인 🔹 기간: 00월 00일 ~ 00월 00일 🔹 예약 바로가기: [링크] 지금 예약하고 환상적인 브라질을 만나보세요! 🌍, answer : 브라질 랜드마크 이미지를 바탕으로 50% 할인을 강조하는 광고 이미지를 그리는데 (50% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘. question :"
-    //let promEngine = "중요 키워드를 3개 정도 뽑아서 한 문장으로 짧게 요약해줘. 그리고 그 중에서 포스터에 들어갈 강조될 문장은 뭐인것같아?"
-
-
-    // if (aspect === '자연') { // 선택에 따라 모델 다르게 선택
-    //     model = "gpt-4o-mini";
-    // } else if (aspect === '포스터') {
-    //     model = "gpt-4o-mini";
-    // } else {
-    //     model = "gpt-4o-mini";
-    // }
-
-    model = "gpt-4o-mini";
-    promEngine = `이 광고 문자의 주제를 두개 단어 혹은 세개 단어 정도로 요약해봐`;
-
-    //프롬프트 생성, 중요 키워드추출하는 엔지니어링
     try {
+<<<<<<< HEAD
         const completion = await openai.chat.completions.create({
             model: model,
             messages: [
@@ -144,13 +217,25 @@ app.post('/generate-image', async (req, res) => {
         sendimagePath = imageUrl;
         insertImage(imageUrl);
 
+=======
+        // aspect 변수에 따라 이미지 생성 방식 분기
+        if (aspect === 'POSTER' || aspect === 'CHARACTER_DESIGN' || aspect === 'NATURE' || aspect === 'ABSTRACT_ART') {
+            // '포스터', '캐릭터 디자인', '자연 및 풍경', '추상 예술' 유형 이미지 생성 시 useIdeo 함수 호출
+            imageUrl = await useIdeo(mood, finalPrompt);
+        } else if (aspect === 'LOGO' || aspect === 'BANNER' || aspect === 'THUMBNAIL' || aspect === 'PRODUCT_IMAGE' || aspect === 'ILLUSTRATION' || aspect === 'INFORGRAPHIC'){
+            // '로고', '배너', '자연', '썸네일', '제품 이미지', '일러스트레이션', '인포그래픽' 유형 이미지 생성 시 useDall 함수 호출
+            imageUrl = await useDall(mood, finalPrompt);
+        }
+        res.json({ imageUrl }); // 생성된 이미지 URL을 클라이언트로 응답
+>>>>>>> f13077c131d31139418d6b4a21ac3674436ed4a8
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: '이미지 생성 실패' });
+        console.error('이미지 생성 오류:', error); // 에러 로그 출력
+        res.status(500).json({ error: '이미지 생성 실패' }); // 에러 응답
     }
 });
 
+<<<<<<< HEAD
 // 주소록 목록을 조회하는 API 엔드포인트
 app.get('/api/phonebook', (req, res) => {
     const query = 'SELECT * FROM phone_book';
@@ -267,6 +352,9 @@ app.post('/api/sendNumbers', (req, res) => {
 
 
 
+=======
+// 정적 파일 제공 (public 폴더 내)
+>>>>>>> f13077c131d31139418d6b4a21ac3674436ed4a8
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 서버 시작
