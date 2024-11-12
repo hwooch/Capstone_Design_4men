@@ -104,7 +104,11 @@
         const image = document.getElementById('generated-image'); // 생성된 이미지
         const addPhoneBookButton = document.getElementById('Addphonebook-button');  //주소록 추가 버튼
 
-        const selectedPhoneBook = [];
+        const selectedPhoneBook = [];  //선택된 주소록의 배열
+        const addedNumber = [];  //추가된 전화번호의 배열
+        const addedPhoneBook = [];  //추가된 주소록의 배열
+
+
         //화면 로드 시 db에서 주소록 불러옴    
         window.onload = () => {
             fetch('/api/phonebook')
@@ -230,26 +234,16 @@
             }
         });
 
-        addPhoneBookButton.addEventListener('click',() => {
-            console.log(selectedPhoneBook);
-            // 선택된 상태를 원래 상태로 되돌리기
-            const listItems = document.querySelectorAll(".phonebook-list");
-            listItems.forEach(item => {
-            item.classList.remove("selected"); // CSS 클래스 제거
-            });
-            selectedPhoneBook.length = 0; // 배열 초기화
-            console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
-        });
 
         const phonenumbersContainer = document.getElementById('phonenumber-list'); // 핸드폰 번호 리스트 컨테이너
         const phonenumberInput = document.getElementById('phonenumber-input'); // 핸드폰 번호 입력 창
 
-        document.getElementById('add-phonenumber').addEventListener('click', () => {
-            const phonenumber = phonenumberInput.value.trim();
-            if (phonenumber) {
+        //전화번호 추가 함수
+        const addList = (value, array) =>{
+            if (value) {
                 const phonenumberElement = document.createElement('div');
                 phonenumberElement.className = 'phonenumber';
-                phonenumberElement.textContent = phonenumber + ' ';
+                phonenumberElement.textContent = value + ' ';
 
                 // X 버튼 추가
                 const removeButton = document.createElement('span');
@@ -257,12 +251,56 @@
                 removeButton.className = 'remove';
                 removeButton.onclick = () => {
                     phonenumbersContainer.removeChild(phonenumberElement);
+                    array = array.filter( (value) => value != value);
                 };
 
                 phonenumberElement.appendChild(removeButton);
                 phonenumbersContainer.appendChild(phonenumberElement);
-                phonenumberInput.value = '';
+                array.push(value);
             }
+        }
+        //주소록에서 추가
+        addPhoneBookButton.addEventListener('click',() => {
+            console.log(selectedPhoneBook);
+            // 선택된 상태를 원래 상태로 되돌리기
+            const listItems = document.querySelectorAll(".phonebook-list");
+            listItems.forEach(item => {
+            item.classList.remove("selected"); // CSS 클래스 제거
+            });
+            selectedPhoneBook.map( value => addList(value, addedPhoneBook));
+            selectedPhoneBook.length = 0; // 배열 초기화
+            console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
+        });
+
+        //전화번호에서 추가
+        document.getElementById('add-phonenumber').addEventListener('click', () => {
+            const phonenumber = phonenumberInput.value.trim();
+            addList(phonenumber, addedNumber);
+            phonenumberInput.value = '';
+        });
+
+        //발송하기
+        document.getElementById('send-button').addEventListener('click', () => {
+            fetch('/api/sendNumbers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(addedPhoneBook) // 배열을 JSON 문자열로 변환하여 전송
+            })
+            .then();
+            // .then(response => {
+            //     if (!response.ok) {
+            //         throw new Error('네트워크 응답이 실패했습니다.');
+            //     }
+            //     return response.json(); // 응답을 JSON으로 변환
+            // })
+            // .then(data => {
+            //     console.log('응답 데이터:', data);
+            // })
+            // .catch(err => {
+            //     console.error('요청 실패:', err);
+            // });
         });
 
 
