@@ -15,7 +15,7 @@ const translate = require('@vitalets/google-translate-api');
 const app = express();
 const port = 3000;
 const openai = new OpenAI();
-const IMAGE_PATH = "C:/castoneImage"
+const IMAGE_PATH = "/home/ec2-user/castoneImage"
 
 //db와 연관되어 페이지를 한번열때마다 생성되는 seq
 let image_seq;
