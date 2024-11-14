@@ -19,7 +19,6 @@ const IMAGE_PATH = "C:/castoneImage"
 let image_seq;
 let sendimagePath;
 let sendNumbers;
-console.log('OpenAI API Key:', process.env.OPENAI_API_KEY , "IDEOGRAM_API_KEY:", process.env.IDEOGRAM_API_KEY);
 
 
 //객체 생성
@@ -110,10 +109,6 @@ app.post('/generate-image', async (req, res) => {
         } else if (aspect === '포스터') {
             // Ideogram API를 호출하여 이미지 생성
             finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
-<<<<<<< HEAD
-
-=======
->>>>>>> pjh
             response = await fetch("https://api.ideogram.ai/generate", {
                 method: "POST",
                 headers: {
