@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
+const fetch = require("node-fetch");
+
 
 
 const translate = require('@vitalets/google-translate-api');
