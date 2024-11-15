@@ -26,8 +26,8 @@ let sendNumbers;
 //객체 생성
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password: '1234',
+    user: 'fourman',
+    password: 'fourMan1234!',
     database: 'precapstonedb'
   });
 // db연결
