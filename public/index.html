@@ -48,7 +48,7 @@
             <div class="image-container-text">
                 <h2>이미지 생성 결과</h2>
                 <button id="remix-image-button">이미지 재생성</button>
-                <input type="file" id="image_file" style="display:none;" />
+                <input type="file" id="image_file" />
             </div>
             <!------------------------------------------------------------------------------------->
             <div class="image-container-generate">
@@ -99,7 +99,32 @@
     </div>
     <!-- 팝업 구조 추가 -->
 
+    <!----------------------------------------------------------------------------------------------------------------------------------------------->
 
+    <script type="module">
+        import { remixImage } from './hwooch.js'; // hwooch.js에서 remixImage 함수 가져오기
+
+        const remixImageButton = document.getElementById('remix-image-button');
+        const image_hwooch = document.getElementById('generated-image');
+
+        remixImageButton.addEventListener('click', async () => {
+            const fileInput = document.getElementById("image_file");
+            const imageFile = fileInput.files[0];
+
+            if (!imageFile) {
+                alert('재생성할 이미지를 선택하세요.');
+                return;
+            }
+
+            try {
+                const imageUrl = await remixImage(imageFile);
+                image_hwooch.src = imageUrl; // 생성된 이미지 URL 표시
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+    <!----------------------------------------------------------------------------------------------------------------------------------------------->
     <script>
 
         const generateButton = document.getElementById('generate-button'); // 이미지 생성 버튼
@@ -347,46 +372,6 @@
         span.onclick = function () {
             modal.style.display = "none";
         }
-
-
-        //////////////////////////////////
-        // Create a new FormData instance
-        document.getElementById('remix-image-button').addEventListener('click', async () => {
-            const fileInput = document.getElementById("image_file");
-            fileInput.click(); // 파일 선택 대화상자 열기
-
-            // 파일이 선택되면 서버로 전송
-            fileInput.onchange = async () => {
-                const imageFile = fileInput.files[0]; // 선택된 파일
-                console.log(imageFile);
-                if (imageFile) {
-                    const formData = new FormData();
-                    formData.append("imageFile", imageFile); // 선택된 이미지 파일 추가
-                    formData.append("image_request", JSON.stringify({
-                        "prompt": "Change the color of the flower to blue",
-                        "aspect_ratio": "ASPECT_10_16",
-                        "image_weight": 50,
-                        "magic_prompt_option": "ON",
-                        "model": "V_2"
-                    }));
-                    console.log("123");
-                    console.log(formData);
-                    console.log("456");
-                    try {
-                        const response = await fetch('/remix-image', {
-                            method: 'POST',
-                            body: formData // FormData로 전송
-                        });
-
-                        const data = await response.json(); // 받아온 이미지
-                        image.src = data.imageUrl; // 이미지 url 표시
-                    } catch (error) {
-                        console.error(error);
-                        alert('이미지 재생성 중 오류가 발생했습니다.');
-                    }
-                }
-            };
-        });
     </script>
 </body>
 
