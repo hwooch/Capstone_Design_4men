@@ -20,11 +20,11 @@ const openai = new OpenAI();
 const IMAGE_PATH = "C:/castoneImage"
 
 //db와 연관되어 페이지를 한번열때마다 생성되는 seq
-let image_seq;
+let image_seq;                               
 let sendimagePath;
 let sendNumbers;
 
-
+console.log(process.env.OPENAI_API_KEY, process.env.IDEOGRAM_API_KEY);
 //객체 생성
 const db = mysql.createConnection({
     host: 'localhost',
@@ -97,123 +97,74 @@ app.post('/remix-image', upload.single('imageFile'), async (req, res) => {
 });
 
 
-openai.apiKey = process.env.OPENAI_API_KEY;
+openai.apiKey = "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";
+const ideogramApiKey = "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSWBT44229ewv4__8yBikCUfHFABkwEXQ"; 
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
-// 이미지 생성 엔드포인트
+// Ideogram API 호출 함수
+async function generateIdeogramImage(prompt, mood) {
+    const finalPrompt = `${prompt} ${mood} 느낌으로 그려줘`;
+    
+    try {
+        const response = await fetch("https://api.ideogram.ai/generate", {
+            method: "POST",
+            headers: {
+                "Api-Key": ideogramApiKey,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "image_request": {
+                    "prompt": finalPrompt,
+                    "model": "V_2_TURBO",
+                    "negative_prompt": "text, logo, watermark",
+                    "style_type": mood // ANIME, AUTO, DESIGN, GENERAL, REALISTIC, RENDER_3D에 맞춰 적용
+                }
+            }),
+        });
+        const body = await response.json();
+        return body.data[0]?.url; // 이미지 URL 반환
+    } catch (error) {
+        console.error("Ideogram API 호출 오류:", error);
+        throw new Error('Ideogram 이미지 생성 실패');
+    }
+}
+
 app.post('/generate-image', async (req, res) => {
     const { prompt, aspect, mood } = req.body;
     console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
 
-    let model, promEngine;
-    let moodValue = mood;
+    let moodValue = mood === '기본 분위기' ? '' : mood;
+    let generatedPrompt = `${prompt}을(를) 표현하는 그림을 그릴거야. 다만, 그림에서 글자는 절대 포함하지 않고 그려줘.`;
+    let imageUrl;
 
-    if (moodValue == '기본 분위기') {
-        moodValue = "";
-    }
-
-    //let promEngine = "question : 지금 바로 제주도로 떠나보세요! 숙박 최대 30% 할인 혜택 🎉한정된 기간 동안만 제공되는 특별 프로모션! 힐링 가득한 제주에서 아름다운 추억을 만들어보세요.🔹 혜택: 숙박 30% 할인🔹 기간: 00월 00일 ~ 00월 00일🔹 예약 바로가기: [링크] 지금 예약하고 제주도에서 힐링하세요! ✈️, answer : 제주도 랜드마크 이미지를 바탕으로 30% 할인을 강조하는 광고 이미지를 그리는데 (30% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘, question : 지금 바로 브라질로 떠나세요! 항공권 50% 할인 혜택 🎉 한정 기간 동안만 가능한 특별 할인 이벤트! 다채로운 문화와 자연의 경이로움을 경험해보세요. 🔹 혜택: 항공권 50% 할인 🔹 기간: 00월 00일 ~ 00월 00일 🔹 예약 바로가기: [링크] 지금 예약하고 환상적인 브라질을 만나보세요! 🌍, answer : 브라질 랜드마크 이미지를 바탕으로 50% 할인을 강조하는 광고 이미지를 그리는데 (50% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘. question :"
-    //let promEngine = "중요 키워드를 3개 정도 뽑아서 한 문장으로 짧게 요약해줘. 그리고 그 중에서 포스터에 들어갈 강조될 문장은 뭐인것같아?"
-
-
-    // if (aspect === '자연') { // 선택에 따라 모델 다르게 선택
-    //     model = "gpt-4o-mini";
-    // } else if (aspect === '포스터') {
-    //     model = "gpt-4o-mini";
-    // } else {
-    //     model = "gpt-4o-mini";
-    // }
-
-    model = "gpt-4o-mini";
-    promEngine = `이 광고 문자의 주제를 두개 단어 혹은 세개 단어 정도로 요약해봐`;
-
-    //프롬프트 생성, 중요 키워드추출하는 엔지니어링
     try {
-        const completion = await openai.chat.completions.create({
-            model: model,
-            messages: [
-                { role: "system", content: "You are someone who creates advertising images." },
-                {
-                    role: "user",
-                    //content: '(' + prompt + ')' + promEngine,
-                    content: '(' + prompt + ')',
-                },
-            ],
-        });
-
-        console.log('AI의 대답 : ' + completion.choices[0].message.content);
-
-        let generatedPrompt = `${completion.choices[0].message.content}을(를) 표현하는 그림을 그릴거야.`;
-        // 이미지에 텍스트 필수로 넣고싶다고 선택되었다면 밑에 기능 완성할것
-        // let selectText;
-        // if (selectText == false){
-        //     generatedPrompt = generatedPrompt + '다만, 그림에서 글자는 절대 포함하지 않고 그려줘';
-        // }
-
-        generatedPrompt = generatedPrompt + ' 다만, 그림에서 글자는 절대 포함하지 않고 그려줘. ';
-
-        let response;
-        let finalPrompt;
-        let body;
-
-        // OpenAI API를 호출하여 이미지 생성
-        if (aspect === '자연') {
-            finalPrompt = `${generatedPrompt}` + ' 그리고 자연을 중점으로 그릴거고' + moodValue + ' 느낌으로 그려줘'; // 1 대신 "자연 형식으로 바꿔줘" 삽입
-            response = await openai.images.generate({
+        if (["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"].includes(mood)) {
+            // Ideogram API 호출
+            imageUrl = await generateIdeogramImage(generatedPrompt, mood);
+        } else {
+            // DALL-E API 호출
+            const finalPrompt = `${generatedPrompt} ${aspect} 형식으로 ${moodValue} 느낌으로 그려줘`;
+            const response = await openai.images.generate({
                 model: "dall-e-3",
                 prompt: finalPrompt,
                 n: 1,
                 size: "1024x1024",
             });
-        } else if (aspect === '포스터') {
-            // Ideogram API를 호출하여 이미지 생성
-            finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
-
-            response = await fetch("https://api.ideogram.ai/generate", {
-                method: "POST",
-                headers: {
-                    "Api-Key": process.env.IDEOGRAM_API_KEY,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "image_request": {
-                        "prompt": finalPrompt,
-                        "model": "V_2_TURBO", // V_1 , V_1_TURBO , V_2 , V_2_TURBO ( 총 4개 있음
-                        "negative_prompt": "text, logo, watermark",
-                        "style_type": "AUTO" //ANIME , AUTO , DESIGN , GENERAL , REALISTIC , RENDER_3D ( 총 6개있음
-                    }
-                }),
-            });
-
-            body = await response.json();
-            console.log(body);
-            //console.log(body.data[0].url);
-
-        } else { // 기본
-            finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue + ' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
-            response = await openai.images.generate({
-                model: "dall-e-3", // ""
-                prompt: finalPrompt,
-                n: 1,
-                size: "1024x1024",
-            });
+            imageUrl = response.data[0]?.url;
         }
-        console.log('넘겨지는 최종 문장 :', finalPrompt);
 
-        const imageUrl = response.data[0].url; // DALL-E 일때 활성화
-        //const imageUrl = body.data[0].url; // Ideogram 일때 활성화
+        if (!imageUrl) {
+            return res.status(500).json({ error: '이미지 생성 실패' });
+        }
 
         res.json({ imageUrl });
-
         sendimagePath = imageUrl;
         insertImage(imageUrl);
-
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: '이미지 생성 실패' });
     }
 });
-
 
 
 
