@@ -60,10 +60,12 @@
             <!------------------------------------------------------------------------------------->
             <div class="image-container-history">
                 <div style="display: flex; justify-content: center; align-items: center;">
-                    <button id="history-prev-button" class="history-prev-button">이전</button>
-                    <img id="history-image-1" src="basic.png" alt="생성된 이미지">
-                    <img id="history-image-2" src="basic.png" alt="생성된 이미지">
-                    <button id="history-next-button" class="history-next-button">다음</button>
+                    <button id="history-prev-button" class="history-prev-button" onclick="prevImages()">이전</button>
+                    <img id="history-image-1" src="basic.png" alt="생성된 이미지"
+                        onclick="updateGeneratedImage('history-image-1')">
+                    <img id="history-image-2" src="basic.png" alt="생성된 이미지"
+                        onclick="updateGeneratedImage('history-image-2')">
+                    <button id="history-next-button" class="history-next-button" onclick="nextImages()">다음</button>
                 </div>
             </div>
         </div>
@@ -104,6 +106,12 @@
 
 
     <script>
+<<<<<<< HEAD
+=======
+        let images = []; // 서버에서 받은 이미지 목록을 저장할 배열
+        let currentIndex = 0; //이미지를 나타내는 인덱스
+        const defaultImage = 'basic.png'; // 기본 이미지 경로 설정
+>>>>>>> 71813db826f20b5e4ea455fd2a17692727fabb60
 
         const generateButton = document.getElementById('generate-button'); // 이미지 생성 버튼
         const image = document.getElementById('generated-image'); // 생성된 이미지
@@ -113,6 +121,37 @@
         const addedNumber = [];  //추가된 전화번호의 배열
         const addedPhoneBook = [];  //추가된 주소록의 배열
 
+        //db에서 이미지 받아오는 함수
+        async function fetchImages() {
+            const response = await fetch('/api/images');
+            images = await response.json();
+            console.log(images);
+            displayImages();
+        }
+        //이미지 나타내는 함수
+        function displayImages() {
+            document.getElementById('history-image-1').src = images[currentIndex] || defaultImage;
+            document.getElementById('history-image-2').src = images[currentIndex + 1] || defaultImage;
+        }
+        //이전 버튼 
+        function prevImages() {
+            if (currentIndex > 0) {
+                currentIndex -= 2;
+                displayImages();
+            }
+        }
+        //다음 버튼
+        function nextImages() {
+            if (currentIndex < images.length - 2) {
+                currentIndex += 2;
+                displayImages();
+            }
+        }
+        //이미지 클릭 함수 메인이미지의 src가 바뀜
+        function updateGeneratedImage(imageId) {
+            const selectedImageSrc = document.getElementById(imageId).src;
+            document.getElementById('generated-image').src = selectedImageSrc;
+        }
 
         //화면 로드 시 db에서 주소록 불러옴    
         window.onload = () => {
@@ -236,6 +275,7 @@
                 clearInterval(interval);
                 generateButton.textContent = originalText;
                 generateButton.disabled = false;
+                fetchImages();
             }
         });
 
@@ -286,12 +326,18 @@
 
         //발송하기
         document.getElementById('send-button').addEventListener('click', () => {
+            // 추가하려는 데이터
+            const dataToSend = {
+                phoneBook: addedPhoneBook, // 기존의 전화번호 데이터
+                imageSrc: image.src          // img의 src 추가
+            };
+
             fetch('/api/sendNumbers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(addedPhoneBook) // 배열을 JSON 문자열로 변환하여 전송
+                body: JSON.stringify(dataToSend) // 배열을 JSON 문자열로 변환하여 전송
             })
                 .then();
             // .then(response => {

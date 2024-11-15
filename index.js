@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
+const fetch = require("node-fetch");
+
 
 // multer 설정
 const multer = require('multer'); // multer 추가
@@ -213,8 +215,8 @@ const insertImage = (url) => {
     saveImage(url, path);
 
     // INSERT 쿼리 실행
-    const sql = `INSERT INTO image (IMAGE_PATH, SEQ) VALUES (?, ?)`;
-    const values = [path, image_seq];
+    const sql = `INSERT INTO image (IMAGE_PATH, SEQ, IMAGE_URL) VALUES (?, ?, ?)`;
+    const values = [path, image_seq, url];
 
     db.query(sql, values, (err, results) => {
         if (err) {
@@ -250,7 +252,6 @@ const saveImage = (image_url, path) => {
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', (req, res) => {
-    const query = 'SELECT * FROM phone_number WHERE BOOK_NAME IN(?,?)';
     const values = req.body;
     console.log(values);
     db.query(query, values, (err, results) => {
@@ -282,7 +283,15 @@ app.post('/api/sendNumbers', (req, res) => {
     res.end();
 });
 
-
+// 이미지 리스트를 가져오는 API
+app.get('/api/images', async (req, res) => {
+    db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
+        if (error) throw error;
+        console.log(results);
+        const urlArray = results.map(row => row.IMAGE_URL);
+        res.json(urlArray); // 이미지 경로 리스트 반환
+    });
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
