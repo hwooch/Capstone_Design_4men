@@ -102,8 +102,8 @@ openai.apiKey = "sk-proj-wiuJ8Rp-r6gSDaO9uXrQI7ykeOywce8CGVt0hCEDwtkXgaCwyC_WPCr
 const ideogramApiKey = "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSWBT44229ewv4__8yBikCUfHFABkwEXQ"; 
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
-async function generateIdeogramImage(prompt, mood) {
-    const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘. 텍스트는 넣지마`;
+async function generateIdeogramImage(prompt, mood, aspect) {
+    const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서`;
     
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
@@ -132,7 +132,7 @@ async function generateIdeogramImage(prompt, mood) {
 //DALL-E 사용 함수
 async function generateDalleImage(prompt, aspect, mood) {
     try {
-        const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘 텍스트는 넣지마`;
+        const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서 ${mood} 느낌으로 그려줘`;
         const response = await openai.images.generate({
             model: "dall-e-3",
             prompt: finalPrompt,
