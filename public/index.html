@@ -55,10 +55,12 @@
             <!------------------------------------------------------------------------------------->
             <div class="image-container-history">
                 <div style="display: flex; justify-content: center; align-items: center;">
-                    <button id="history-prev-button" class="history-prev-button">이전</button>
-                    <img id="history-image-1" src="basic.png" alt="생성된 이미지">
-                    <img id="history-image-2" src="basic.png" alt="생성된 이미지">
-                    <button id="history-next-button" class="history-next-button">다음</button>
+                    <button id="history-prev-button" class="history-prev-button" onclick="prevImages()">이전</button>
+                    <img id="history-image-1" src="basic.png" alt="생성된 이미지"
+                        onclick="updateGeneratedImage('history-image-1')">
+                    <img id="history-image-2" src="basic.png" alt="생성된 이미지"
+                        onclick="updateGeneratedImage('history-image-2')">
+                    <button id="history-next-button" class="history-next-button" onclick="nextImages()">다음</button>
                 </div>
             </div>
         </div>
@@ -99,7 +101,10 @@
 
 
     <script>
-        
+        let images = []; // 서버에서 받은 이미지 목록을 저장할 배열
+        let currentIndex = 0; //이미지를 나타내는 인덱스
+        const defaultImage = 'basic.png'; // 기본 이미지 경로 설정
+
         const generateButton = document.getElementById('generate-button'); // 이미지 생성 버튼
         const image = document.getElementById('generated-image'); // 생성된 이미지
         const addPhoneBookButton = document.getElementById('Addphonebook-button');  //주소록 추가 버튼
@@ -108,49 +113,80 @@
         const addedNumber = [];  //추가된 전화번호의 배열
         const addedPhoneBook = [];  //추가된 주소록의 배열
 
+        //db에서 이미지 받아오는 함수
+        async function fetchImages() {
+            const response = await fetch('/api/images');
+            images = await response.json();
+            console.log(images);
+            displayImages();
+        }
+        //이미지 나타내는 함수
+        function displayImages() {
+            document.getElementById('history-image-1').src = images[currentIndex] || defaultImage;
+            document.getElementById('history-image-2').src = images[currentIndex + 1] || defaultImage;
+        }
+        //이전 버튼 
+        function prevImages() {
+            if (currentIndex > 0) {
+                currentIndex -= 2;
+                displayImages();
+            }
+        }
+        //다음 버튼
+        function nextImages() {
+            if (currentIndex < images.length - 2) {
+                currentIndex += 2;
+                displayImages();
+            }
+        }
+        //이미지 클릭 함수 메인이미지의 src가 바뀜
+        function updateGeneratedImage(imageId) {
+            const selectedImageSrc = document.getElementById(imageId).src;
+            document.getElementById('generated-image').src = selectedImageSrc;
+        }
 
         //화면 로드 시 db에서 주소록 불러옴    
         window.onload = () => {
             fetch('/api/phonebook')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('네트워크 응답이 실패했습니다.');
-                }
-                return response.json(); // 응답을 JSON으로 변환
-            })
-            .then(data => {
-                // 리스트 컨테이너 요소 선택
-                const listContainer = document.getElementById("phone-group");
-
-                // 각 행에 대해 리스트 아이템을 동적으로 생성
-                data.forEach(row => {
-                const listItem = document.createElement("div");
-                listItem.className = "phonebook-list";
-                listItem.textContent = row;
-
-                // 리스트 아이템에 클릭 이벤트 추가
-                listItem.addEventListener("click", function() {
-                    this.classList.toggle("selected");
-
-                    if (this.classList.contains("selected")) {
-                        selectedPhoneBook.push(this.textContent); // 아이템 추가
-                    } else {
-                        // 선택 해제 시 배열에서 제거
-                        const index = selectedPhoneBook.indexOf(this.textContent);
-                        if (index > -1) {
-                            selectedPhoneBook.splice(index, 1);
-                        }
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('네트워크 응답이 실패했습니다.');
                     }
-                });
+                    return response.json(); // 응답을 JSON으로 변환
+                })
+                .then(data => {
+                    // 리스트 컨테이너 요소 선택
+                    const listContainer = document.getElementById("phone-group");
 
-                // 리스트 컨테이너에 아이템 추가
-                listContainer.appendChild(listItem);
+                    // 각 행에 대해 리스트 아이템을 동적으로 생성
+                    data.forEach(row => {
+                        const listItem = document.createElement("div");
+                        listItem.className = "phonebook-list";
+                        listItem.textContent = row;
+
+                        // 리스트 아이템에 클릭 이벤트 추가
+                        listItem.addEventListener("click", function () {
+                            this.classList.toggle("selected");
+
+                            if (this.classList.contains("selected")) {
+                                selectedPhoneBook.push(this.textContent); // 아이템 추가
+                            } else {
+                                // 선택 해제 시 배열에서 제거
+                                const index = selectedPhoneBook.indexOf(this.textContent);
+                                if (index > -1) {
+                                    selectedPhoneBook.splice(index, 1);
+                                }
+                            }
+                        });
+
+                        // 리스트 컨테이너에 아이템 추가
+                        listContainer.appendChild(listItem);
+                    });
+                    //console.log('응답 데이터:', data);
+                })
+                .catch(err => {
+                    console.error('요청 실패:', err);
                 });
-                //console.log('응답 데이터:', data);
-            })
-            .catch(err => {
-                console.error('요청 실패:', err);
-            });
         };
 
         let selectedAspect = ''; // 선택된 주요 관점
@@ -231,6 +267,7 @@
                 clearInterval(interval);
                 generateButton.textContent = originalText;
                 generateButton.disabled = false;
+                fetchImages();
             }
         });
 
@@ -239,7 +276,7 @@
         const phonenumberInput = document.getElementById('phonenumber-input'); // 핸드폰 번호 입력 창
 
         //전화번호 추가 함수
-        const addList = (value, array) =>{
+        const addList = (value, array) => {
             if (value) {
                 const phonenumberElement = document.createElement('div');
                 phonenumberElement.className = 'phonenumber';
@@ -251,7 +288,7 @@
                 removeButton.className = 'remove';
                 removeButton.onclick = () => {
                     phonenumbersContainer.removeChild(phonenumberElement);
-                    array = array.filter( (value) => value != value);
+                    array = array.filter((value) => value != value);
                 };
 
                 phonenumberElement.appendChild(removeButton);
@@ -260,14 +297,14 @@
             }
         }
         //주소록에서 추가
-        addPhoneBookButton.addEventListener('click',() => {
+        addPhoneBookButton.addEventListener('click', () => {
             console.log(selectedPhoneBook);
             // 선택된 상태를 원래 상태로 되돌리기
             const listItems = document.querySelectorAll(".phonebook-list");
             listItems.forEach(item => {
-            item.classList.remove("selected"); // CSS 클래스 제거
+                item.classList.remove("selected"); // CSS 클래스 제거
             });
-            selectedPhoneBook.map( value => addList(value, addedPhoneBook));
+            selectedPhoneBook.map(value => addList(value, addedPhoneBook));
             selectedPhoneBook.length = 0; // 배열 초기화
             console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
         });
@@ -288,7 +325,7 @@
                 },
                 body: JSON.stringify(addedPhoneBook) // 배열을 JSON 문자열로 변환하여 전송
             })
-            .then();
+                .then();
             // .then(response => {
             //     if (!response.ok) {
             //         throw new Error('네트워크 응답이 실패했습니다.');

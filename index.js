@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
+const fetch = require("node-fetch");
+
 
 
 const translate = require('@vitalets/google-translate-api');
@@ -198,8 +200,8 @@ const insertImage = (url) => {
     saveImage(url, path);
 
     // INSERT 쿼리 실행
-    const sql = `INSERT INTO image (IMAGE_PATH, SEQ) VALUES (?, ?)`;
-    const values = [path, image_seq];
+    const sql = `INSERT INTO image (IMAGE_PATH, SEQ, IMAGE_URL) VALUES (?, ?, ?)`;
+    const values = [path, image_seq, url];
 
     db.query(sql, values, (err, results) => {
     if (err) {
@@ -267,7 +269,15 @@ app.post('/api/sendNumbers', (req, res) => {
     res.end();
   });
 
-
+  // 이미지 리스트를 가져오는 API
+    app.get('/api/images', async (req, res) => {
+  db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
+    if (error) throw error;
+    console.log(results);
+    const urlArray = results.map(row => row.IMAGE_URL);
+    res.json(urlArray); // 이미지 경로 리스트 반환
+  });
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
