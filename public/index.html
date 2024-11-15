@@ -318,12 +318,18 @@
 
         //발송하기
         document.getElementById('send-button').addEventListener('click', () => {
+            // 추가하려는 데이터
+            const dataToSend = {
+                phoneBook: addedPhoneBook, // 기존의 전화번호 데이터
+                imageSrc: image.src          // img의 src 추가
+            };
+
             fetch('/api/sendNumbers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(addedPhoneBook) // 배열을 JSON 문자열로 변환하여 전송
+                body: JSON.stringify(dataToSend) // 배열을 JSON 문자열로 변환하여 전송
             })
                 .then();
             // .then(response => {

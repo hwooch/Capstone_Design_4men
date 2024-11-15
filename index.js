@@ -29,14 +29,14 @@ const db = mysql.createConnection({
     user: 'root',
     password: '1234',
     database: 'precapstonedb'
-  });
+});
 // db연결
 db.connect(err => {
-if (err) {
-    console.error('DB 연결 실패:', err);
-    return;
-}
-console.log('MySQL 연결 성공!');
+    if (err) {
+        console.error('DB 연결 실패:', err);
+        return;
+    }
+    console.log('MySQL 연결 성공!');
 });
 
 app.use(cors({ origin: '*' }));
@@ -48,7 +48,7 @@ openai.apiKey = process.env.OPENAI_API_KEY;
 app.post('/generate-image', async (req, res) => {
     const { prompt, aspect, mood } = req.body;
     console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
-    
+
     let model, promEngine;
     let moodValue = mood;
 
@@ -110,7 +110,7 @@ app.post('/generate-image', async (req, res) => {
             });
         } else if (aspect === '포스터') {
             // Ideogram API를 호출하여 이미지 생성
-            finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
+            finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 ' + moodValue + ' 느낌으로 그려줘';
             response = await fetch("https://api.ideogram.ai/generate", {
                 method: "POST",
                 headers: {
@@ -128,7 +128,7 @@ app.post('/generate-image', async (req, res) => {
             });
             body = await response.json();
             console.log(body.data[0].url);
-            
+
         } else { // 기본
             finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue + ' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
             response = await openai.images.generate({
@@ -159,41 +159,41 @@ app.post('/generate-image', async (req, res) => {
 app.get('/api/phonebook', (req, res) => {
     const query = 'SELECT * FROM phone_book';
     db.query(query, (err, results) => {
-      if (err) {
-        console.error('쿼리 실패:', err);
-        res.status(500).send('DB 조회 실패');
-        return;
-      }
-    const phone_book = results.map( item => item.book_name);
-    console.log(phone_book);
-    res.send(phone_book);
-
-    //image_master테이블 입력받고 seq값 받아오기
-    const sql = 'INSERT INTO image_master () VALUES ()';
-    db.query(sql, (err, results) => {
         if (err) {
-        console.error('데이터 삽입 오류:', err);
-        return;
+            console.error('쿼리 실패:', err);
+            res.status(500).send('DB 조회 실패');
+            return;
         }
-        console.log('데이터 삽입 성공! 생성된 ID:', results.insertId);
-        image_seq = results.insertId
-    });
-      //res.json(results); // 쿼리 결과를 JSON으로 응답
-    });
-  });
+        const phone_book = results.map(item => item.book_name);
+        console.log(phone_book);
+        res.send(phone_book);
 
-  //이미지 생성시 url받아서 db에 입력
+        //image_master테이블 입력받고 seq값 받아오기
+        const sql = 'INSERT INTO image_master () VALUES ()';
+        db.query(sql, (err, results) => {
+            if (err) {
+                console.error('데이터 삽입 오류:', err);
+                return;
+            }
+            console.log('데이터 삽입 성공! 생성된 ID:', results.insertId);
+            image_seq = results.insertId
+        });
+        //res.json(results); // 쿼리 결과를 JSON으로 응답
+    });
+});
+
+//이미지 생성시 url받아서 db에 입력
 const insertImage = (url) => {
     const now = new Date();
 
     const year = String(now.getFullYear()).slice(-2); // 연도 마지막 두 자리
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    
+
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
-    
+
     const image_name = `${year}${month}${day}${hours}${minutes}${seconds}.jpg`;
     console.log('이미지 이름:', image_name);
     const path = `${IMAGE_PATH}/${image_name}`;
@@ -204,10 +204,10 @@ const insertImage = (url) => {
     const values = [path, image_seq, url];
 
     db.query(sql, values, (err, results) => {
-    if (err) {
-        console.error('데이터 삽입 오류:', err);
-        return;
-    }
+        if (err) {
+            console.error('데이터 삽입 오류:', err);
+            return;
+        }
     });
 
 }
@@ -219,36 +219,53 @@ const saveImage = (image_url, path) => {
 
     // 이미지 다운로드 및 저장
     axios({
-    url: imageUrl,
-    method: 'GET',
-    responseType: 'stream' // 이미지 스트림으로 응답 받기
+        url: imageUrl,
+        method: 'GET',
+        responseType: 'stream' // 이미지 스트림으로 응답 받기
     }).then(response => {
-    response.data.pipe(fs.createWriteStream(filePath))
-        .on('finish', () => {
-        console.log('이미지 저장 완료!');
-        })
-        .on('error', err => {
-        console.error('이미지 저장 실패:', err);
-        });
+        response.data.pipe(fs.createWriteStream(filePath))
+            .on('finish', () => {
+                console.log('이미지 저장 완료!');
+            })
+            .on('error', err => {
+                console.error('이미지 저장 실패:', err);
+            });
     }).catch(err => {
-    console.error('다운로드 실패:', err);
+        console.error('다운로드 실패:', err);
     });
 }
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', (req, res) => {
-    const query = 'SELECT * FROM phone_number WHERE BOOK_NAME IN(?,?)';
     const values = req.body;
-    console.log(values);
-    db.query(query, values, (err, results) => {
-      if (err) {
-        console.error('쿼리 실패:', err);
-        res.status(500).send('DB 조회 실패');
-        return;
-      }
-    sendNumbers = results.map( item => item.PHONE_NUMBER);
-    //console.log([sendimagePath, sendNumbers]);
-    //res.send([sendimagePath, sendNumbers]);
+    console.log('넘어온 데이터:',values);
+    // IN 절의 ? 개수를 배열 길이에 맞게 생성
+    const placeholders = values.phoneBook.map(() => '?').join(',');
+
+    const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
+    // console.log(values);
+    db.query(query, values.phoneBook, (err, results) => {
+        if (err) {
+            console.error('쿼리 실패:', err);
+            res.status(500).send('DB 조회 실패');
+            return;
+        }
+        sendNumbers = results.map(item => item.PHONE_NUMBER);
+        console.log('ㅇㅇㅇ:',sendNumbers);
+        //res.send([sendimagePath, sendNumbers]);
+    });
+
+    const query2 = `SELECT IMAGE_PATH FROM image WHERE IMAGE_URL = ?`;
+    db.query(query2, values.imageSrc, (err, results) => {
+        if (err) {
+            console.error('쿼리 실패:', err);
+            res.status(500).send('DB 조회 실패');
+            return;
+        }
+        // sendNumbers = results.map(item => item.IMAGE_PATH);
+        sendimagePath=results[0].IMAGE_PATH;
+        console.log("이미지 패스 변수:",sendimagePath);
+        //res.send([sendimagePath, sendNumbers]);
     });
 
     //백엔드 서버에 보내기
@@ -257,26 +274,26 @@ app.post('/api/sendNumbers', (req, res) => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({"sendimagePath":sendimagePath, "sendNumbers":sendNumbers}) // 배열을 JSON 문자열로 변환
+        body: JSON.stringify({ "sendimagePath": sendimagePath, "sendNumbers": sendNumbers }) // 배열을 JSON 문자열로 변환
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
     res.end();
-  });
+});
 
-  // 이미지 리스트를 가져오는 API
-    app.get('/api/images', async (req, res) => {
-  db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
-    if (error) throw error;
-    console.log(results);
-    const urlArray = results.map(row => row.IMAGE_URL);
-    res.json(urlArray); // 이미지 경로 리스트 반환
-  });
+// 이미지 리스트를 가져오는 API
+app.get('/api/images', async (req, res) => {
+    db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
+        if (error) throw error;
+        console.log(results);
+        const urlArray = results.map(row => row.IMAGE_URL);
+        res.json(urlArray); // 이미지 경로 리스트 반환
+    });
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
