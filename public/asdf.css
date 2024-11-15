@@ -347,3 +347,9 @@ button:disabled {
     border-radius: 4px;
     box-sizing: border-box;
 }
+
+#history-image-1,
+#history-image-2 {
+    /* 이미지 클릭가능한느낌 */
+    cursor: pointer;
+}
