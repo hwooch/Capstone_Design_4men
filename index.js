@@ -9,8 +9,7 @@ const mysql = require('mysql2');
 const axios = require('axios');
 const fetch = require("node-fetch");
 
-
-// multer 설정
+// multer 설정git add index.js public/index.html
 const multer = require('multer'); // multer 추가
 const storage = multer.memoryStorage(); // 메모리에 파일 저장
 const upload = multer({ storage: storage });
@@ -104,7 +103,7 @@ const ideogramApiKey = "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSW
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
 async function generateIdeogramImage(prompt, mood) {
-    const finalPrompt = `${prompt} ${mood} 느낌으로 그려줘`;
+    const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘. 텍스트는 넣지마`;
     
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
@@ -130,29 +129,44 @@ async function generateIdeogramImage(prompt, mood) {
     }
 }
 
+//DALL-E 사용 함수
+async function generateDalleImage(prompt, aspect, mood) {
+    try {
+        const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘 텍스트는 넣지마`;
+        const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: finalPrompt,
+            n: 1,
+            size: "1024x1024",
+        });
+
+        const imageUrl = response.data[0]?.url;
+        if (!imageUrl) {
+            throw new Error('이미지 생성 실패');
+        }
+
+        return imageUrl;
+    } catch (error) {
+        console.error("DALL-E 이미지 생성 오류:", error);
+        throw error;
+    }
+}
+
+//이미지 생성 함수 실행
 app.post('/generate-image', async (req, res) => {
     const { prompt, aspect, mood } = req.body;
-    console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
+    console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
 
-    let moodValue = mood === '기본 분위기' ? '' : mood;
-    let generatedPrompt = `${prompt}을(를) 표현하는 그림을 그릴거야. 다만, 그림에서 글자는 절대 포함하지 않고 그려줘.`;
     let imageUrl;
-
     try {
-        if (["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"].includes(mood)) {
-            // Ideogram API 호출
-            imageUrl = await generateIdeogramImage(generatedPrompt, mood);
-        } else {
-            // DALL-E API 호출
-            const finalPrompt = `${generatedPrompt} ${aspect} 형식으로 ${moodValue} 느낌으로 그려줘`;
-            const response = await openai.images.generate({
-                model: "dall-e-3",
-                prompt: finalPrompt,
-                n: 1,
-                size: "1024x1024",
-            });
-            imageUrl = response.data[0]?.url;
-        }
+        // DALL-E가 처리할 작업
+        if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
+            imageUrl = await generateDalleImage(prompt, aspect, mood);
+        } 
+        // Ideogram이 처리할 작업
+        else if (["광고", "브랜딩 디자인", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
+            imageUrl = await generateIdeogramImage(prompt, mood);
+        } 
 
         if (!imageUrl) {
             return res.status(500).json({ error: '이미지 생성 실패' });
@@ -167,7 +181,6 @@ app.post('/generate-image', async (req, res) => {
         res.status(500).json({ error: '이미지 생성 실패' });
     }
 });
-
 
 
 // 주소록 목록을 조회하는 API 엔드포인트
