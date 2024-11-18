@@ -164,13 +164,11 @@ app.post('/generate-image', async (req, res) => {
             imageUrl = await generateDalleImage(prompt, aspect, mood);
         } 
         // Ideogram이 처리할 작업
-        else if (["광고", "브랜딩 디자인", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
+        else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
             imageUrl = await generateIdeogramImage(prompt, mood);
         } 
-
-        if (!imageUrl) {
-            return res.status(500).json({ error: '이미지 생성 실패' });
-        }
+        // 직접 입력
+        else imageUrl = await generateDalleImage(prompt, aspect, mood);
 
         res.json({ imageUrl });
         sendimagePath = imageUrl;

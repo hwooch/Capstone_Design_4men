@@ -16,9 +16,10 @@
             <h2>생성 유형</h2>
             <div class="button-group">
                 <p>주요 관점</p>
+                <button class="aspect-input-button" onclick="handleAspectInput(this)">직접 입력</button>
+                <input type="text" id="aspect-input" class="aspect-input-field" placeholder="텍스트를 입력하세요" style="display:none; width: 100px;" onblur="handleAspectBlur(this)">
                 <button class="aspect-button" data-aspect="포스터">포스터</button>
                 <button class="aspect-button" data-aspect="광고">광고</button>
-                <button class="aspect-button" data-aspect="브랜딩 디자인">브랜딩 디자인</button>
                 <button class="aspect-button" data-aspect="컨셉 아트">컨셉 아트</button>
                 <button class="aspect-button" data-aspect="일러스트">일러스트</button>
                 <button class="aspect-button" data-aspect="제품 렌더링">제품 렌더링</button>
@@ -27,6 +28,8 @@
             </div>            
             <div class="button-group">
                 <p>그림 분위기</p>
+                <button class="mood-input-button" onclick="handleMoodInput(this)">직접 입력</button>
+                <input type="text" id="mood-input" class="mood-input-field" placeholder="텍스트를 입력하세요" style="display:none; width: 100px;" onblur="handleMoodBlur(this)">
                 <button class="mood-button" data-mood="AUTO">미지정</button>
                 <button class="mood-button" data-mood="GENERAL">일반적</button>
                 <button class="mood-button" data-mood="REALISTIC">리얼리즘</button>
@@ -34,6 +37,73 @@
                 <button class="mood-button" data-mood="RENDER_3D">3D 렌더링</button>
                 <button class="mood-button" data-mood="ANIME">애니메이션</button>
             </div>
+            
+            <script>
+                // Handle input for aspect
+                function handleAspectInput(button) {
+                    const inputField = document.getElementById('aspect-input');
+                    button.classList.add('selected');
+                    button.style.backgroundColor = '#444'; // 버튼 클릭 시 색상 변경
+                    inputField.style.display = 'inline-block';
+                    inputField.focus();
+                }
+
+                function handleAspectBlur(input) {
+                    if (input.value.trim() !== '') {
+                        selectedAspect = input.value;
+                        const button = document.querySelector('.aspect-input-button');
+                        button.innerText = input.value; // 버튼 텍스트 변경
+                    }
+                    input.style.display = 'none';
+                    const button = document.querySelector('.aspect-input-button');
+                    button.classList.add('selected'); // 입력 후에도 버튼이 선택된 상태 유지
+                    button.style.backgroundColor = '#444'; // 버튼 색상 유지
+                }
+
+                // Handle input for mood
+                function handleMoodInput(button) {
+                    const inputField = document.getElementById('mood-input');
+                    button.classList.add('selected');
+                    button.style.backgroundColor = '#444'; // 버튼 클릭 시 색상 변경
+                    inputField.style.display = 'inline-block';
+                    inputField.focus();
+                }
+
+                function handleMoodBlur(input) {
+                    if (input.value.trim() !== '') {
+                        selectedMood = input.value;
+                        const button = document.querySelector('.mood-input-button');
+                        button.innerText = input.value; // 버튼 텍스트 변경
+                    }
+                    input.style.display = 'none';
+                    const button = document.querySelector('.mood-input-button');
+                    button.classList.add('selected'); // 입력 후에도 버튼이 선택된 상태 유지
+                    button.style.backgroundColor = '#444'; // 버튼 색상 유지
+                }
+
+                // Add event listener to unselect other buttons when a new one is selected
+                document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(btn => {
+                            if (btn !== button) {
+                                btn.classList.remove('selected');
+                                btn.style.backgroundColor = '';
+                            }
+                        });
+                    });
+                });
+
+                document.querySelectorAll('.mood-button, .mood-input-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        document.querySelectorAll('.mood-button, .mood-input-button').forEach(btn => {
+                            if (btn !== button) {
+                                btn.classList.remove('selected');
+                                btn.style.backgroundColor = '';
+                            }
+                        });
+                    });
+                });
+            </script>
             <!------------------------------------------------------------------------------------->
             <h2>발송 내용</h2>
             <div class="button-group" flex-direction: column>
@@ -164,9 +234,9 @@
                     // 리스트 컨테이너 요소 선택
                     const listContainer = document.getElementById("phone-group");
 
-                    // 각 행에 대해 리스트 아이템을 동적으로 생성
+                    // 각 행에 대해 리스트 아이템을
                     data.forEach(row => {
-                        const listItem = document.createElement("div");
+                        const list = document.createElement("div");
                         listItem.className = "phonebook-list";
                         listItem.textContent = row;
 

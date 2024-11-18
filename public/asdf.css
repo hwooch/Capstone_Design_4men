@@ -6,6 +6,7 @@ body {
     height: 100%;
     margin: 20px;
     background-color: #f4f4f4;
+    max-width: 90%;
 }
 
 .container {
@@ -19,35 +20,30 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     position: relative;
     margin: 0 auto;
+    gap: 20px;
+    justify-content: space-between;
 }
 
-.left-panel {
-    /* 왼쪽 패널 */
+.left-panel, .middle-panel, .right-panel {
+    flex: 1;
     padding: 20px;
-    width: 35%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.left-panel {
+    width: 35%;
     border-right: 1px solid #ccc;
 }
 
 .middle-panel {
-    /* 가운데 패널 */
-    padding: 20px;
     width: 45%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     border-right: 1px solid #ccc;
 }
 
 .right-panel {
-    /* 오른쪽 패널 */
-    padding: 20px;
     width: 20%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
 h2 {
@@ -65,7 +61,6 @@ p {
 }
 
 textarea {
-    /* 발송 내용 텍스트 입력창 */
     width: calc(100% - 20px);
     height: 300px;
     min-height: 50px;
@@ -80,7 +75,6 @@ textarea {
 }
 
 .keywords-container {
-    /* 이미지에 포함시키고 싶은 텍스트 입력창을 감싸는 컨테이너*/
     display: flex;
     align-items: center;
     margin-bottom: 10px;
@@ -88,9 +82,7 @@ textarea {
 }
 
 input[type="text"] {
-    /* 이미지에 포함시키고 싶은 텍스트 입력창 */
     flex: 1;
-
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -100,43 +92,85 @@ input[type="text"] {
 }
 
 .button-group {
-    /* 생성유형과 발송내용의 버튼 컨테이너 */
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 10px;
+    gap: 10px;
 }
 
-.button-group button {
-    /* 그 컨테이너 속 버튼 속성들 */
-    margin-left: 14px;
-    padding: 1px 12px;
+.button-group.aspect-group {
+    flex-direction: row;
+}
+
+.button-group.mood-group {
+    flex-direction: row;
+    margin-top: 20px;
+}
+
+.aspect-button, .mood-button, .button-group button {
+    padding: 10px;
+    width: auto;
+    text-align: center;
     border: none;
-    border-radius: 10px;
-    background-color: #28a745;
-    color: white;
     cursor: pointer;
-    transition: background-color 0.3s;
-    height: auto;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
 }
 
-.button-group button.selected {
-    /* 생성유형의 버튼들이 선택되었을때 색상 변경 */
-    background-color: #186428;
+.aspect-button:hover, .mood-button:hover, .button-group button:hover {
+    background-color: #45a049;
+}
+
+.button-group button.selected, .selected {
+    background-color: #3e8e41;
+}
+
+#prompt, #keyword-input, #phonenumber-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.send-button-container, .phonenumber-container {
+    margin-top: 20px;
+}
+
+#send-button, #add-phonenumber, #Addphonebook-button, #generate-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#send-button:hover, #add-phonenumber:hover, #Addphonebook-button:hover, #generate-button:hover {
+    background-color: #45a049;
 }
 
 .image-container-text {
-    /* 이미지 생성 결과 글씨 속성 */
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 10px;
 }
 
+.image-container-generate {
+    margin-top: 20px;
+    text-align: center;
+}
+
 .image-container-generate img {
-    /* 생성된 이미지 속성 */
-    max-height: 500px; /* 최대 높이 설정 */
-    overflow: hidden; /* 넘치는 부분 숨기기 */
-    width: auto; /* 비율에 맞게 너비 자동 조절 */
+    max-height: 500px;
+    overflow: hidden;
+    width: auto;
     height: auto;
     border-radius: 8px;
     margin: auto;
@@ -144,22 +178,29 @@ input[type="text"] {
 }
 
 .image-container-history {
-    /* 하단의 생성되었던 이미지 컨테이너 */
-    max-height: 190px; /* 최대 높이 설정 */
-    overflow: hidden; /* 넘치는 부분 숨기기 */
-    width: auto; /* 비율에 맞게 너비 자동 조절 */
+    max-height: 190px;
+    overflow: hidden;
+    width: auto;
     margin-top: 10px;
     display: flex;
     align-items: center;
 }
 
-.image-container-history button {
-    /* 생성되었던 이미지 이동 버튼 */
-    margin: auto;
+.history-prev-button, .history-next-button {
+    padding: 10px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.history-prev-button:hover, .history-next-button:hover {
+    background-color: #45a049;
 }
 
 .image-container-history img {
-    /* 하단의 생성되었던 이미지 속성 */
     margin-top: 10px;
     width: calc(35% - 10px);
     border-radius: 8px;
@@ -168,7 +209,6 @@ input[type="text"] {
 }
 
 button {
-    /* 모든 버튼의 속성들 */
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
@@ -180,45 +220,35 @@ button {
 }
 
 button:hover {
-    /* 버튼에 마우스 올려둘때 색상 변화 */
     background-color: #218838;
 }
 
 button:disabled {
-    /* 이미지 생성 버튼이 비활성화 되었을때 속성 */
     background-color: #619578;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
 .phone-group {
-    /* 주소록 칸인데 현재 미구현으로 빈칸 남겨두기위해 margin 속성만 추가 */
-    width: 250px;   /* div의 너비 */
-    height: 200px;  /* div의 높이 */
+    width: 250px;
+    height: 200px;
     border: 1px solid #ccc;
-    overflow-y: auto; /* div 내부 스크롤 활성화 */
+    overflow-y: auto;
     padding: 10px;
 }
 
-.phonebook-list{
+.phonebook-list {
     padding: 8px;
     border-bottom: 1px solid #eee;
 }
 
-/* 선택된 아이템에 적용될 스타일 */
-.selected {
-    background-color: lightblue;
-  }
-
 .Addphonebook-button {
-    /* 주소록 추가 버튼 */
     margin-top: 5px;
     margin-bottom: 20px;
     color: white;
 }
 
 .phonenumber-list {
-    /* 전화번호 입력하고 추가할때 나타나는 리스트 컨테이너 */
     margin-top: 10px;
     max-height: 150px;
     display: block;
@@ -228,7 +258,6 @@ button:disabled {
 }
 
 .phonenumber {
-    /* 추가한 전화번호 */
     margin-right: 5px;
     margin-bottom: 10px;
     padding: 5px 10px;
@@ -240,7 +269,6 @@ button:disabled {
 }
 
 .phonenumber .remove {
-    /* 전화번호 오른쪽의 X 버튼 */
     margin-left: 5px;
     cursor: pointer;
     color: red;
@@ -248,32 +276,7 @@ button:disabled {
     font-size: 12px;
 }
 
-#phonenumber-input {
-    /* 전화번호 입력 텍스트 칸 */
-    font-size: 12px;
-    flex: 1;
-
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-right: 10px;
-    height: 20px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.send-button-container {
-    /* 발송하기 버튼 컨테이너 */
-    margin-top: auto;
-    width: 100%;
-}
-
-#send-button {
-    /* 발송하기 버튼 */
-    width: 100%;
-    padding: 10px;
-}
-
-#send-history-button { 
-    /* 발송 내역 버튼 속성*/
+#send-history-button {
     background-color: #28a745;
     color: white;
     border-radius: 5px;
@@ -282,12 +285,9 @@ button:disabled {
 }
 
 #send-history-button:hover {
-    /* 발송 내역 버튼에 마우스 올려두었을 때 */
     background-color: #218838;
 }
-/* -----------------------------------------------  */
 
-/* 발송내역의 팝업 속성들 */
 .modal {
     display: none;
     position: fixed;
@@ -299,7 +299,6 @@ button:disabled {
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
     padding-top: 60px;
-
 }
 
 .modal-content {
@@ -316,25 +315,19 @@ button:disabled {
 }
 
 .close {
-    /* X 버튼 */
     color: #ff0000;
     float: right;
     font-size: 28px;
     font-weight: bold;
 }
 
-.close:hover,
-.close:focus {
-    /* X 버튼에 마우스 올려두었을때 색상 변경 */
+.close:hover, .close:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;
 }
 
-
-
 .history-container {
-    /* 발송 내역 리스트 컨테이너*/
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -343,7 +336,6 @@ button:disabled {
 }
 
 .history-item {
-    /* 발송 내역 리스트 내의 텍스트들 */
     width: calc(50% - 10px);
     margin-bottom: 20px;
     margin-right: 10px;
@@ -353,8 +345,6 @@ button:disabled {
     box-sizing: border-box;
 }
 
-#history-image-1,
-#history-image-2 {
-    /* 이미지 클릭가능한느낌 */
+#history-image-1, #history-image-2 {
     cursor: pointer;
 }
