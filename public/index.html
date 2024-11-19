@@ -114,6 +114,10 @@
 
     <script>
 
+        let images = []; // 서버에서 받은 이미지 목록을 저장할 배열
+        let currentIndex = 0; //이미지를 나타내는 인덱스
+        const defaultImage = 'basic.png'; // 기본 이미지 경로 설정
+        
         const generateButton = document.getElementById('generate-button'); // 이미지 생성 버튼
         const image = document.getElementById('generated-image'); // 생성된 이미지
         const addPhoneBookButton = document.getElementById('Addphonebook-button');  //주소록 추가 버튼
