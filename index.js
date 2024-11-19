@@ -263,15 +263,33 @@ const saveImage = (image_url, path) => {
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', (req, res) => {
     const values = req.body;
-    console.log(values);
-    db.query(query, values, (err, results) => {
+    console.log('넘어온 데이터:',values);
+    // IN 절의 ? 개수를 배열 길이에 맞게 생성
+    const placeholders = values.phoneBook.map(() => '?').join(',');
+
+    const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
+    // console.log(values);
+    db.query(query, values.phoneBook, (err, results) => {
         if (err) {
             console.error('쿼리 실패:', err);
             res.status(500).send('DB 조회 실패');
             return;
         }
         sendNumbers = results.map(item => item.PHONE_NUMBER);
-        //console.log([sendimagePath, sendNumbers]);
+        console.log('ㅇㅇㅇ:',sendNumbers);
+        //res.send([sendimagePath, sendNumbers]);
+    });
+
+    const query2 = `SELECT IMAGE_PATH FROM image WHERE IMAGE_URL = ?`;
+    db.query(query2, values.imageSrc, (err, results) => {
+        if (err) {
+            console.error('쿼리 실패:', err);
+            res.status(500).send('DB 조회 실패');
+            return;
+        }
+        // sendNumbers = results.map(item => item.IMAGE_PATH);
+        sendimagePath=results[0].IMAGE_PATH;
+        console.log("이미지 패스 변수:",sendimagePath);
         //res.send([sendimagePath, sendNumbers]);
     });
 
