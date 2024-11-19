@@ -8,6 +8,7 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
 const fetch = require("node-fetch");
+const sharp = require('sharp');
 
 // multer 설정git add index.js public/index.html
 const multer = require('multer'); // multer 추가
@@ -49,6 +50,7 @@ app.use(express.json());
 // Ideogram API 호출 함수
 async function generateIdeogramImage(prompt, mood, aspect) {
     const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서`;
+    //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려서`;
     
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
@@ -182,28 +184,71 @@ const insertImage = (url) => {
     });
 
 }
-//이미지 생성시 png로 저장
-const saveImage = (image_url, path) => {
-    const imageUrl = image_url;
-    // 저장 경로와 파일명 설정
-    const filePath = path;  //할때마다 다른 파일명. 그리고 db에 insert
 
-    // 이미지 다운로드 및 저장
-    axios({
-        url: imageUrl,
-        method: 'GET',
-        responseType: 'stream' // 이미지 스트림으로 응답 받기
-    }).then(response => {
-        response.data.pipe(fs.createWriteStream(filePath))
-            .on('finish', () => {
-                console.log('이미지 저장 완료!');
-            })
-            .on('error', err => {
-                console.error('이미지 저장 실패:', err);
-            });
-    }).catch(err => {
-        console.error('다운로드 실패:', err);
-    });
+// 이미지 생성시 png로 저장
+const saveImage = async (image_url, filePath) => {
+    const imageUrl = image_url;
+    const originalPath = filePath; // 원본 이미지 경로
+    const tempPath = `${originalPath}.temp`; // 임시 파일 경로
+
+    const maxFileSize = 300 * 1024; // 최대 파일 크기 (300KB)
+    let quality = 100; // 초기 품질 설정
+
+    try {
+        // 원본 이미지 다운로드 및 저장
+        const response = await axios({
+            url: imageUrl,
+            method: 'GET',
+            responseType: 'stream' // 이미지 스트림으로 응답 받기
+        });
+
+        // 원본 이미지 저장
+        await new Promise((resolve, reject) => {
+            const writeStream = fs.createWriteStream(originalPath);
+            response.data.pipe(writeStream)
+                .on('finish', () => {
+                    console.log('원본 이미지 저장 완료!');
+                    resolve();
+                })
+                .on('error', err => {
+                    console.error('원본 이미지 저장 실패:', err);
+                    reject(err);
+                });
+        });
+
+        await sharp(originalPath)
+            .resize(800) // 지금 사진이 1024x1024로 생성되는데
+            // resize안에 800 넣으면 800x800으로 생성됨
+            .png({ quality })
+            .toFile(tempPath);
+
+        // 파일 크기 확인 및 품질 조정
+        let stats = fs.statSync(tempPath);
+        while (stats.size > maxFileSize && quality > 1) {
+            quality -= 1; // 품질을 1씩 낮춤
+
+            // 품질 조정하여 다시 저장
+            await sharp(tempPath)
+                .png({ quality })
+                .toFile(tempPath);
+            stats = fs.statSync(tempPath); // 파일 크기 재확인
+        }
+
+        // 최종 압축된 파일 경로 설정 (example_copy.png)
+        const compressedPath = path.join(path.dirname(originalPath), `${path.basename(originalPath, path.extname(originalPath))}_copy${path.extname(originalPath)}`);
+        
+        // 최종 압축된 파일 저장
+        fs.renameSync(tempPath, compressedPath); // 임시 파일을 압축된 이미지로 이동
+        console.log('복사한 이미지 저장 완료!', stats.size / 1024, 'KB');
+
+    } catch (err) {
+        console.error('다운로드 또는 저장 실패:', err);
+    } finally {
+        // 임시 파일 삭제 (존재하는 경우)
+        if (tempPath && fs.existsSync(tempPath)) {
+            fs.unlinkSync(tempPath);
+        }
+    }
 }
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
