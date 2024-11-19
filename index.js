@@ -7,8 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const mysql = require('mysql2');
 const axios = require('axios');
+const fetch = require("node-fetch");
 
-// multer 설정
 const multer = require('multer'); // multer 추가
 const storage = multer.memoryStorage(); // 메모리에 파일 저장
 const upload = multer({ storage: storage });
@@ -24,7 +24,7 @@ let image_seq;
 let sendimagePath;
 let sendNumbers;
 
-
+console.log(process.env.OPENAI_API_KEY, process.env.IDEOGRAM_API_KEY);
 //객체 생성
 const db = mysql.createConnection({
     host: 'localhost',
@@ -35,7 +35,7 @@ const db = mysql.createConnection({
 // db연결
 db.connect(err => {
     if (err) {
-        //console.error('DB 연결 실패:', err);
+        console.error('DB 연결 실패:', err);
         return;
     }
     console.log('MySQL 연결 성공!');
@@ -45,129 +45,87 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 
-
-
-
 openai.apiKey = process.env.OPENAI_API_KEY;
-// console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY + "\n");
-// console.log(openai.apiKey);
 
-// 이미지 생성 엔드포인트
-app.post('/generate-image', async (req, res) => {
-    const { prompt, aspect, mood } = req.body;
-    console.log('웹페이지로부터 넘겨받은 문장 : ', prompt, '\n넘겨받은 생성 유형 : ', aspect, mood);
+// Ideogram API 호출 함수
+async function generateIdeogramImage(prompt, aspect, mood) {
+    const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘. 텍스트는 넣지마`;
 
-    let model, promEngine;
-    let moodValue = mood;
-
-    if (moodValue == '기본 분위기') {
-        moodValue = "";
-    }
-
-    //let promEngine = "question : 지금 바로 제주도로 떠나보세요! 숙박 최대 30% 할인 혜택 🎉한정된 기간 동안만 제공되는 특별 프로모션! 힐링 가득한 제주에서 아름다운 추억을 만들어보세요.🔹 혜택: 숙박 30% 할인🔹 기간: 00월 00일 ~ 00월 00일🔹 예약 바로가기: [링크] 지금 예약하고 제주도에서 힐링하세요! ✈️, answer : 제주도 랜드마크 이미지를 바탕으로 30% 할인을 강조하는 광고 이미지를 그리는데 (30% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘, question : 지금 바로 브라질로 떠나세요! 항공권 50% 할인 혜택 🎉 한정 기간 동안만 가능한 특별 할인 이벤트! 다채로운 문화와 자연의 경이로움을 경험해보세요. 🔹 혜택: 항공권 50% 할인 🔹 기간: 00월 00일 ~ 00월 00일 🔹 예약 바로가기: [링크] 지금 예약하고 환상적인 브라질을 만나보세요! 🌍, answer : 브라질 랜드마크 이미지를 바탕으로 50% 할인을 강조하는 광고 이미지를 그리는데 (50% SALE) 을 제외한 나머지 모든 문자와 숫자를 제외하고 그려줘. question :"
-    //let promEngine = "중요 키워드를 3개 정도 뽑아서 한 문장으로 짧게 요약해줘. 그리고 그 중에서 포스터에 들어갈 강조될 문장은 뭐인것같아?"
-
-
-    // if (aspect === '자연') { // 선택에 따라 모델 다르게 선택
-    //     model = "gpt-4o-mini";
-    // } else if (aspect === '포스터') {
-    //     model = "gpt-4o-mini";
-    // } else {
-    //     model = "gpt-4o-mini";
-    // }
-
-    model = "gpt-4o-mini";
-    promEngine = `이 광고 문자의 주제를 두개 단어 혹은 세개 단어 정도로 요약해봐`;
-
-    //프롬프트 생성, 중요 키워드추출하는 엔지니어링
     try {
-        const completion = await openai.chat.completions.create({
-            model: model,
-            messages: [
-                { role: "system", content: "You are someone who creates advertising images." },
-                {
-                    role: "user",
-                    //content: '(' + prompt + ')' + promEngine,
-                    content: '(' + prompt + ')',
-                },
-            ],
+        const response = await fetch("https://api.ideogram.ai/generate", {
+            method: "POST",
+            headers: {
+                "Api-Key": process.env.IDEOGRAM_API_KEY,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "image_request": {
+                    "prompt": finalPrompt,
+                    "model": "V_2_TURBO",
+                    "negative_prompt": "text, logo, watermark",
+                    "style_type": mood // ANIME, AUTO, DESIGN, GENERAL, REALISTIC, RENDER_3D에 맞춰 적용
+                }
+            }),
+        });
+        const body = await response.json();
+        return body.data[0]?.url; // 이미지 URL 반환
+    } catch (error) {
+        console.error("Ideogram API 호출 오류:", error);
+        throw new Error('Ideogram 이미지 생성 실패');
+    }
+}
+
+//DALL-E 사용 함수
+async function generateDalleImage(prompt, aspect, mood) {
+    try {
+        const finalPrompt = `${prompt} ${aspect} 형식으로 ${mood} 느낌으로 그려줘 텍스트는 넣지마`;
+        const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: finalPrompt,
+            n: 1,
+            size: "1024x1024",
         });
 
-        console.log('AI의 대답 : ' + completion.choices[0].message.content);
-
-        let generatedPrompt = `${completion.choices[0].message.content}을(를) 표현하는 그림을 그릴거야.`;
-        // 이미지에 텍스트 필수로 넣고싶다고 선택되었다면 밑에 기능 완성할것
-        // let selectText;
-        // if (selectText == false){
-        //     generatedPrompt = generatedPrompt + '다만, 그림에서 글자는 절대 포함하지 않고 그려줘';
-        // }
-
-        generatedPrompt = generatedPrompt + ' 다만, 그림에서 글자는 절대 포함하지 않고 그려줘. ';
-
-        let response;
-        let finalPrompt;
-        let body;
-
-        // OpenAI API를 호출하여 이미지 생성
-        if (aspect === '자연') {
-            finalPrompt = `${generatedPrompt}` + ' 그리고 자연을 중점으로 그릴거고' + moodValue + ' 느낌으로 그려줘'; // 1 대신 "자연 형식으로 바꿔줘" 삽입
-            response = await openai.images.generate({
-                model: "dall-e-3",
-                prompt: finalPrompt,
-                n: 1,
-                size: "1024x1024",
-            });
-        } else if (aspect === '포스터') {
-            // Ideogram API를 호출하여 이미지 생성
-            finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 ' + moodValue + ' 느낌으로 그려줘';
-
-            response = await fetch("https://api.ideogram.ai/generate", {
-                method: "POST",
-                headers: {
-                    "Api-Key": process.env.IDEOGRAM_API_KEY,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "image_request": {
-                        "prompt": finalPrompt,
-                        "model": "V_2_TURBO", // V_1 , V_1_TURBO , V_2 , V_2_TURBO ( 총 4개 있음
-                        "negative_prompt": "text, logo, watermark",
-                        "style_type": "AUTO" //ANIME , AUTO , DESIGN , GENERAL , REALISTIC , RENDER_3D ( 총 6개있음
-                    }
-                }),
-            });
-
-            body = await response.json();
-            console.log(body);
-            //console.log(body.data[0].url);
-
-        } else { // 기본
-            finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue + ' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
-            response = await openai.images.generate({
-                model: "dall-e-3", // ""
-                prompt: finalPrompt,
-                n: 1,
-                size: "1024x1024",
-            });
+        const imageUrl = response.data[0]?.url;
+        if (!imageUrl) {
+            throw new Error('이미지 생성 실패');
         }
-        console.log('넘겨지는 최종 문장 :', finalPrompt);
 
-        const imageUrl = response.data[0].url; // DALL-E 일때 활성화
-        //const imageUrl = body.data[0].url; // Ideogram 일때 활성화
+        return imageUrl;
+    } catch (error) {
+        console.error("DALL-E 이미지 생성 오류:", error);
+        throw error;
+    }
+}
+
+//이미지 생성 함수 실행
+app.post('/generate-image', async (req, res) => {
+    const { prompt, aspect, mood } = req.body;
+    console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
+
+    let imageUrl;
+    try {
+        // DALL-E가 처리할 작업
+        if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
+            imageUrl = await generateDalleImage(prompt, aspect, mood);
+        }
+        // Ideogram이 처리할 작업
+        else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
+            imageUrl = await generateIdeogramImage(prompt, mood);
+        }
+        else { 
+            imageUrl = await generateDalleImage(prompt, aspect, mood); 
+        }
 
         res.json({ imageUrl });
-
         sendimagePath = imageUrl;
         insertImage(imageUrl);
-
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: '이미지 생성 실패' });
     }
 });
-
-
 
 
 // 주소록 목록을 조회하는 API 엔드포인트
@@ -215,8 +173,8 @@ const insertImage = (url) => {
     saveImage(url, path);
 
     // INSERT 쿼리 실행
-    const sql = `INSERT INTO image (IMAGE_PATH, SEQ) VALUES (?, ?)`;
-    const values = [path, image_seq];
+    const sql = `INSERT INTO image (IMAGE_PATH, SEQ, IMAGE_URL) VALUES (?, ?, ?)`;
+    const values = [path, image_seq, url];
 
     db.query(sql, values, (err, results) => {
         if (err) {
@@ -252,7 +210,6 @@ const saveImage = (image_url, path) => {
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', (req, res) => {
-    const query = 'SELECT * FROM phone_number WHERE BOOK_NAME IN(?,?)';
     const values = req.body;
     console.log(values);
     db.query(query, values, (err, results) => {
@@ -284,7 +241,15 @@ app.post('/api/sendNumbers', (req, res) => {
     res.end();
 });
 
-
+// 이미지 리스트를 가져오는 API
+app.get('/api/images', async (req, res) => {
+    db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
+        if (error) throw error;
+        console.log(results);
+        const urlArray = results.map(row => row.IMAGE_URL);
+        res.json(urlArray); // 이미지 경로 리스트 반환
+    });
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
