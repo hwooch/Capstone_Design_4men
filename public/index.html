@@ -17,7 +17,8 @@
             <div class="button-group">
                 <p>주요 관점</p>
                 <button class="aspect-input-button" onclick="handleAspectInput(this)">직접 입력</button>
-                <input type="text" id="aspect-input" class="aspect-input-field" placeholder="텍스트를 입력하세요" style="display:none; width: 100px;" onblur="handleAspectBlur(this)">
+                <input type="text" id="aspect-input" class="aspect-input-field" placeholder="ex. 청첩장"
+                    style="display:none; width: 100px;" onblur="handleAspectBlur(this)">
                 <button class="aspect-button" data-aspect="포스터">포스터</button>
                 <button class="aspect-button" data-aspect="광고">광고</button>
                 <button class="aspect-button" data-aspect="컨셉 아트">컨셉 아트</button>
@@ -25,11 +26,12 @@
                 <button class="aspect-button" data-aspect="제품 렌더링">제품 렌더링</button>
                 <button class="aspect-button" data-aspect="정보 그래픽">정보 그래픽</button>
                 <button class="aspect-button" data-aspect="커버 아트">커버 아트</button>
-            </div>            
+            </div>
             <div class="button-group">
                 <p>그림 분위기</p>
                 <button class="mood-input-button" onclick="handleMoodInput(this)">직접 입력</button>
-                <input type="text" id="mood-input" class="mood-input-field" placeholder="텍스트를 입력하세요" style="display:none; width: 100px;" onblur="handleMoodBlur(this)">
+                <input type="text" id="mood-input" class="mood-input-field" placeholder="ex. 동양풍"
+                    style="display:none; width: 100px;" onblur="handleMoodBlur(this)">
                 <button class="mood-button" data-mood="AUTO">미지정</button>
                 <button class="mood-button" data-mood="GENERAL">일반적</button>
                 <button class="mood-button" data-mood="REALISTIC">리얼리즘</button>
@@ -37,73 +39,6 @@
                 <button class="mood-button" data-mood="RENDER_3D">3D 렌더링</button>
                 <button class="mood-button" data-mood="ANIME">애니메이션</button>
             </div>
-            
-            <script>
-                // Handle input for aspect
-                function handleAspectInput(button) {
-                    const inputField = document.getElementById('aspect-input');
-                    button.classList.add('selected');
-                    button.style.backgroundColor = '#444'; // 버튼 클릭 시 색상 변경
-                    inputField.style.display = 'inline-block';
-                    inputField.focus();
-                }
-
-                function handleAspectBlur(input) {
-                    if (input.value.trim() !== '') {
-                        selectedAspect = input.value;
-                        const button = document.querySelector('.aspect-input-button');
-                        button.innerText = input.value; // 버튼 텍스트 변경
-                    }
-                    input.style.display = 'none';
-                    const button = document.querySelector('.aspect-input-button');
-                    button.classList.add('selected'); // 입력 후에도 버튼이 선택된 상태 유지
-                    button.style.backgroundColor = '#444'; // 버튼 색상 유지
-                }
-
-                // Handle input for mood
-                function handleMoodInput(button) {
-                    const inputField = document.getElementById('mood-input');
-                    button.classList.add('selected');
-                    button.style.backgroundColor = '#444'; // 버튼 클릭 시 색상 변경
-                    inputField.style.display = 'inline-block';
-                    inputField.focus();
-                }
-
-                function handleMoodBlur(input) {
-                    if (input.value.trim() !== '') {
-                        selectedMood = input.value;
-                        const button = document.querySelector('.mood-input-button');
-                        button.innerText = input.value; // 버튼 텍스트 변경
-                    }
-                    input.style.display = 'none';
-                    const button = document.querySelector('.mood-input-button');
-                    button.classList.add('selected'); // 입력 후에도 버튼이 선택된 상태 유지
-                    button.style.backgroundColor = '#444'; // 버튼 색상 유지
-                }
-
-                // Add event listener to unselect other buttons when a new one is selected
-                document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(btn => {
-                            if (btn !== button) {
-                                btn.classList.remove('selected');
-                                btn.style.backgroundColor = '';
-                            }
-                        });
-                    });
-                });
-
-                document.querySelectorAll('.mood-button, .mood-input-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        document.querySelectorAll('.mood-button, .mood-input-button').forEach(btn => {
-                            if (btn !== button) {
-                                btn.classList.remove('selected');
-                                btn.style.backgroundColor = '';
-                            }
-                        });
-                    });
-                });
-            </script>
             <!------------------------------------------------------------------------------------->
             <h2>발송 내용</h2>
             <div class="button-group" flex-direction: column>
@@ -124,12 +59,10 @@
         <div class="middle-panel">
             <div class="image-container-text">
                 <h2>이미지 생성 결과</h2>
-                <button id="remix-image-button">이미지 재생성</button>
-                <input type="file" id="image_file" style="display:none;" />
             </div>
             <!------------------------------------------------------------------------------------->
             <div class="image-container-generate">
-                <img id="generated-image" src="hwooch.png" alt="생성된 이미지">
+                <img id="generated-image" src="basic.png" alt="생성된 이미지">
             </div>
             <!------------------------------------------------------------------------------------->
             <div class="image-container-history">
@@ -234,7 +167,7 @@
                     // 리스트 컨테이너 요소 선택
                     const listContainer = document.getElementById("phone-group");
 
-                    // 각 행에 대해 리스트 아이템을
+                    // 각 행에 대해 리스트 아이템을 동적으로 생성
                     data.forEach(row => {
                         const listItem = document.createElement("div");
                         listItem.className = "phonebook-list";
@@ -466,44 +399,77 @@
         }
 
 
-        //////////////////////////////////
-        // Create a new FormData instance
-        document.getElementById('remix-image-button').addEventListener('click', async () => {
-            const fileInput = document.getElementById("image_file");
-            fileInput.click(); // 파일 선택 대화상자 열기
+        function handleAspectInput(button) {
+            const inputField = document.getElementById('aspect-input');
+            button.classList.add('selected');
+            inputField.style.display = 'inline-block';
+            inputField.style.maxHeight = '17px';
+            inputField.style.width = '100px';
+            inputField.style.marginLeft = '10px';
+            inputField.focus();
+        }
 
-            // 파일이 선택되면 서버로 전송
-            fileInput.onchange = async () => {
-                const imageFile = fileInput.files[0]; // 선택된 파일
-                console.log(imageFile);
-                if (imageFile) {
-                    const formData = new FormData();
-                    formData.append("imageFile", imageFile); // 선택된 이미지 파일 추가
-                    formData.append("image_request", JSON.stringify({
-                        "prompt": "Change the color of the flower to blue",
-                        "aspect_ratio": "ASPECT_10_16",
-                        "image_weight": 50,
-                        "magic_prompt_option": "ON",
-                        "model": "V_2"
-                    }));
-                    console.log("123");
-                    console.log(formData);
-                    console.log("456");
-                    try {
-                        const response = await fetch('/remix-image', {
-                            method: 'POST',
-                            body: formData // FormData로 전송
-                        });
+        function handleAspectBlur(input) {
+            const button = document.querySelector('.aspect-input-button');
 
-                        const data = await response.json(); // 받아온 이미지
-                        image.src = data.imageUrl; // 이미지 url 표시
-                    } catch (error) {
-                        console.error(error);
-                        alert('이미지 재생성 중 오류가 발생했습니다.');
+            if (input.value.trim() !== '') {
+                selectedAspect = input.value;
+                button.innerText = input.value;
+                button.classList.add('selected');
+            } else {
+                button.innerText = "직접 입력";
+                button.classList.remove('selected');
+            }
+
+            input.style.display = 'none';
+        }
+
+        function handleMoodInput(button) {
+            const inputField = document.getElementById('mood-input');
+            button.classList.add('selected');
+            inputField.style.display = 'inline-block';
+            inputField.style.maxHeight = '17px';
+            inputField.style.width = '100px';
+            inputField.style.marginLeft = '10px';
+            inputField.focus();
+        }
+
+        function handleMoodBlur(input) {
+            const button = document.querySelector('.mood-input-button');
+
+            if (input.value.trim() !== '') {
+                selectedMood = input.value;
+                button.innerText = input.value;
+                button.classList.add('selected');
+            } else {
+                button.innerText = "직접 입력";
+                button.classList.remove('selected');
+            }
+
+            input.style.display = 'none';
+
+        }
+
+        document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.aspect-button, .aspect-input-button').forEach(btn => {
+                    if (btn !== button) {
+                        btn.classList.remove('selected');
                     }
-                }
-            };
+                });
+            });
         });
+
+        document.querySelectorAll('.mood-button, .mood-input-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.mood-button, .mood-input-button').forEach(btn => {
+                    if (btn !== button) {
+                        btn.classList.remove('selected');
+                    }
+                });
+            });
+        });
+
     </script>
 </body>
 
