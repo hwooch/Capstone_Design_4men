@@ -22,7 +22,7 @@ const openai = new OpenAI();
 const IMAGE_PATH = "C:/castoneImage"
 
 //db와 연관되어 페이지를 한번열때마다 생성되는 seq
-let image_seq;                               
+let image_seq;
 let sendimagePath;
 let sendNumbers;
 
@@ -51,7 +51,7 @@ app.use(express.json());
 async function generateIdeogramImage(prompt, mood, aspect) {
     const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서`;
     //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려서`;
-    
+
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
             method: "POST",
@@ -109,11 +109,11 @@ app.post('/generate-image', async (req, res) => {
         // DALL-E가 처리할 작업
         if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
             imageUrl = await generateDalleImage(prompt, aspect, mood);
-        } 
+        }
         // Ideogram이 처리할 작업
         else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
             imageUrl = await generateIdeogramImage(prompt, mood);
-        } 
+        }
         // 직접 입력
         else imageUrl = await generateDalleImage(prompt, aspect, mood);
 
@@ -189,10 +189,13 @@ const insertImage = (url) => {
 const saveImage = async (image_url, filePath) => {
     const imageUrl = image_url;
     const originalPath = filePath; // 원본 이미지 경로
-    const tempPath = `${originalPath}.temp`; // 임시 파일 경로
+    const tempPath1 = `${originalPath}.temp1`; // 임시 파일 1
+    const tempPath2 = `${originalPath}.temp2`; // 임시 파일 2
 
-    const maxFileSize = 300 * 1024; // 최대 파일 크기 (300KB)
+    const maxFileSize = 299 * 1024; // 최대 파일 크기 (300KB)
     let quality = 100; // 초기 품질 설정
+    let currentTempPath = tempPath1;
+    let nextTempPath = tempPath2;
 
     try {
         // 원본 이미지 다운로드 및 저장
@@ -216,45 +219,59 @@ const saveImage = async (image_url, filePath) => {
                 });
         });
 
+        // 첫 번째 임시 파일에 초기 이미지 저장
         await sharp(originalPath)
             .resize(800) // 지금 사진이 1024x1024로 생성되는데
             // resize안에 800 넣으면 800x800으로 생성됨
             .png({ quality })
-            .toFile(tempPath);
+            .toFile(currentTempPath);
 
-        // 파일 크기 확인 및 품질 조정
-        let stats = fs.statSync(tempPath);
+        // 파일 크기를 확인하고 품질 조정
+        let stats = fs.statSync(currentTempPath);
         while (stats.size > maxFileSize && quality > 1) {
             quality -= 1; // 품질을 1씩 낮춤
 
-            // 품질 조정하여 다시 저장
-            await sharp(tempPath)
+            // 다음 임시 파일에 저장
+            await sharp(currentTempPath)
                 .png({ quality })
-                .toFile(tempPath);
-            stats = fs.statSync(tempPath); // 파일 크기 재확인
+                .toFile(nextTempPath);
+
+            // 파일 크기 재확인
+            stats = fs.statSync(nextTempPath);
+
+            // 이전 임시 파일 삭제
+            fs.unlinkSync(currentTempPath);
+
+            // 임시 파일 경로 교환
+            [currentTempPath, nextTempPath] = [nextTempPath, currentTempPath];
         }
 
-        // 최종 압축된 파일 경로 설정 (example_copy.png)
-        const compressedPath = path.join(path.dirname(originalPath), `${path.basename(originalPath, path.extname(originalPath))}_copy${path.extname(originalPath)}`);
-        
+        // 최종 압축된 파일 경로 설정 (예: example_copy.png)
+        const compressedPath = path.join(
+            path.dirname(originalPath),
+            `${path.basename(originalPath, path.extname(originalPath))}_copy${path.extname(originalPath)}`
+        );
+
         // 최종 압축된 파일 저장
-        fs.renameSync(tempPath, compressedPath); // 임시 파일을 압축된 이미지로 이동
-        console.log('복사한 이미지 저장 완료!', stats.size / 1024, 'KB');
+        fs.renameSync(currentTempPath, compressedPath); // 임시 파일을 압축된 이미지로 이동
+        console.log('압축된 이미지 저장 완료!', stats.size / 1024, 'KB');
 
     } catch (err) {
         console.error('다운로드 또는 저장 실패:', err);
     } finally {
         // 임시 파일 삭제 (존재하는 경우)
-        if (tempPath && fs.existsSync(tempPath)) {
-            fs.unlinkSync(tempPath);
-        }
+        [tempPath1, tempPath2].forEach(tempFile => {
+            if (tempFile && fs.existsSync(tempFile)) {
+                fs.unlinkSync(tempFile);
+            }
+        });
     }
 }
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', (req, res) => {
     const values = req.body;
-    console.log('넘어온 데이터:',values);
+    console.log('넘어온 데이터:', values);
     // IN 절의 ? 개수를 배열 길이에 맞게 생성
     const placeholders = values.phoneBook.map(() => '?').join(',');
 
@@ -267,7 +284,7 @@ app.post('/api/sendNumbers', (req, res) => {
             return;
         }
         sendNumbers = results.map(item => item.PHONE_NUMBER);
-        console.log('ㅇㅇㅇ:',sendNumbers);
+        console.log('ㅇㅇㅇ:', sendNumbers);
         //res.send([sendimagePath, sendNumbers]);
     });
 
@@ -279,8 +296,8 @@ app.post('/api/sendNumbers', (req, res) => {
             return;
         }
         // sendNumbers = results.map(item => item.IMAGE_PATH);
-        sendimagePath=results[0].IMAGE_PATH;
-        console.log("이미지 패스 변수:",sendimagePath);
+        sendimagePath = results[0].IMAGE_PATH;
+        console.log("이미지 패스 변수:", sendimagePath);
         //res.send([sendimagePath, sendNumbers]);
     });
 
