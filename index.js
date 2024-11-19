@@ -98,8 +98,7 @@ app.post('/remix-image', upload.single('imageFile'), async (req, res) => {
 });
 
 
-openai.apiKey = "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";
-const ideogramApiKey = "L6gNQBBkoelyM9u_mCQjHQRjAANh4bLB0MLLZobBknnTVHZnniNMQaSWBT44229ewv4__8yBikCUfHFABkwEXQ"; 
+
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
 async function generateIdeogramImage(prompt, mood, aspect) {
@@ -109,7 +108,7 @@ async function generateIdeogramImage(prompt, mood, aspect) {
         const response = await fetch("https://api.ideogram.ai/generate", {
             method: "POST",
             headers: {
-                "Api-Key": ideogramApiKey,
+                "Api-Key": process.env.IDEOGRAM_API_KEY,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
