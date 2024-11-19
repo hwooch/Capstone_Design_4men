@@ -45,60 +45,6 @@ db.connect(err => {
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-
-// 이미지 재생성 API
-app.post('/remix-image', upload.single('imageFile'), async (req, res) => {
-    const imageFile = req.file; // multer가 처리한 파일
-    
-    console.log("파일 정보:", imageFile); // 파일 정보 확인
-    console.log("Body Data:", req.body); // Check what is received in the body
-    if (!imageFile) {
-        return res.status(400).json({ error: '파일이 전송되지 않았습니다.' });
-    }
-
-    const imageRequest = JSON.parse(req.body.image_request); // JSON 요청 데이터
-    const test = req.body; // JSON 요청 데이터
-    console.log("test Data:", test); 
-    console.log("요청 데이터:", imageRequest); // 요청 데이터 확인
-
-
-    const asdf = new FormData();
-    const IMAGE_PATH = "Capstone_Design_4men/public/hwooch.png";
-    const imagePath = path.join(IMAGE_PATH);
-    asdf.append("image_file", imagePath);
-    asdf.append("image_request", JSON.stringify({
-        "prompt": "Change the color of the flower to blue",
-        "aspect_ratio": "ASPECT_10_16",
-        "image_weight": 50,
-        "magic_prompt_option": "ON",
-        "model": "V_2"
-      }));
-
-    console.log(asdf);
-
-    let response;
-    try {
-        response = await fetch("https://api.ideogram.ai/remix", {
-            method: "POST",
-            headers: {
-                "Api-Key": process.env.IDEOGRAM_API_KEY,
-            },
-            body: asdf,
-        });
-
-        body = await response.json();
-        console.log("API 응답:", body); // API 응답 확인
-
-        // API 요청 후 결과를 클라이언트에 반환
-        res.json({ imageUrl: "https://ideogram.ai/api/images/ephemeral/kkBJzIhhQuO3Mt85DucwDA.png?exp=1731510508&sig=444c17af04139db3c242a4523e6f8badf4fe25d849f1ce754a19a8f62ca96089" }); // 실제 이미지 URL로 대체
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: '서버 오류' });
-    }
-});
-
-
-
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
 async function generateIdeogramImage(prompt, mood, aspect) {
