@@ -26,7 +26,6 @@ let image_seq;
 let sendimagePath;
 let sendNumbers;
 
-console.log(process.env.OPENAI_API_KEY, process.env.IDEOGRAM_API_KEY);
 //객체 생성
 const db = mysql.createConnection({
     host: 'localhost',
@@ -138,8 +137,21 @@ app.get('/api/phonebook', (req, res) => {
             return;
         }
         const phone_book = results.map(item => item.book_name);
-        console.log(phone_book);
-        res.send(phone_book);
+        // console.log(phone_book);
+        // res.send(phone_book);
+
+        const query2 = 'SELECT MESSAGE FROM message_history';
+        db.query(query2, (err, results) => { //문자 전송내역
+            if (err) {
+                console.error('쿼리 실패:', err);
+                res.status(500).send('DB 조회 실패');
+                return;
+            }
+            const message_history = results.map(item => item.MESSAGE);
+            console.log(message_history);
+            const result = {phone_book, message_history};
+            res.send(result);
+        });
 
         //image_master테이블 입력받고 seq값 받아오기
         const sql = 'INSERT INTO image_master () VALUES ()';
@@ -253,7 +265,7 @@ const saveImage = async (image_url, filePath) => {
         );
 
         // 최종 압축된 파일 저장
-        fs.renameSync(currentTempPath, compressedPath); // 임시 파일을 압축된 이미지로 이동
+        fs.renameSync(currentTempPath, originalPath); // 임시 파일을 압축된 이미지로 이동
         console.log('압축된 이미지 저장 완료!', stats.size / 1024, 'KB');
 
     } catch (err) {
@@ -269,54 +281,57 @@ const saveImage = async (image_url, filePath) => {
 }
 
 //전송버튼 클릭 시 db에서 번호 조회해옴
-app.post('/api/sendNumbers', (req, res) => {
+app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
+    const messageContent = "안녕하세요 테스트입니다.";
     console.log('넘어온 데이터:', values);
-    // IN 절의 ? 개수를 배열 길이에 맞게 생성
-    const placeholders = values.phoneBook.map(() => '?').join(',');
 
-    const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
-    // console.log(values);
-    db.query(query, values.phoneBook, (err, results) => {
-        if (err) {
-            console.error('쿼리 실패:', err);
-            res.status(500).send('DB 조회 실패');
-            return;
-        }
-        sendNumbers = results.map(item => item.PHONE_NUMBER);
-        console.log('ㅇㅇㅇ:', sendNumbers);
-        //res.send([sendimagePath, sendNumbers]);
-    });
-
-    const query2 = `SELECT IMAGE_PATH FROM image WHERE IMAGE_URL = ?`;
-    db.query(query2, values.imageSrc, (err, results) => {
-        if (err) {
-            console.error('쿼리 실패:', err);
-            res.status(500).send('DB 조회 실패');
-            return;
-        }
-        // sendNumbers = results.map(item => item.IMAGE_PATH);
-        sendimagePath = results[0].IMAGE_PATH;
-        console.log("이미지 패스 변수:", sendimagePath);
-        //res.send([sendimagePath, sendNumbers]);
-    });
-
-    //백엔드 서버에 보내기
-    fetch('http://localhost:8080/api/data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ "sendimagePath": sendimagePath, "sendNumbers": sendNumbers }) // 배열을 JSON 문자열로 변환
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
+    try {
+        // 첫 번째 쿼리 실행
+        const sendNumbers = await new Promise((resolve, reject) => {
+            const placeholders = values.phoneBook.map(() => '?').join(',');
+            const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
+            db.query(query, values.phoneBook, (err, results) => {
+                if (err) return reject(err);
+                resolve(results.map(item => item.PHONE_NUMBER));
+            });
         });
-    res.end();
+
+        console.log('조회된 번호:', sendNumbers);
+
+        // 두 번째 쿼리 실행
+        const sendimagePath = await new Promise((resolve, reject) => {
+            const query2 = `SELECT IMAGE_PATH FROM image WHERE IMAGE_URL = ?`;
+            db.query(query2, values.imageSrc, (err, results) => {
+                if (err) return reject(err);
+                resolve(results[0]?.IMAGE_PATH || null);
+            });
+        });
+
+        console.log("조회된 이미지 경로:", sendimagePath);
+
+        // fetch 호출
+        const response = await fetch('http://localhost:8080/api/data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sendimagePath,
+                sendNumbers,
+                messageContent
+            })
+        });
+
+        const responseData = await response.json();
+        console.log('백엔드 서버 응답:', responseData);
+
+        // 클라이언트에 성공 응답 전송
+        res.send(responseData);
+    } catch (error) {
+        console.error('에러 발생:', error);
+        res.status(500).send('처리 중 오류가 발생했습니다.');
+    }
 });
 
 // 이미지 리스트를 가져오는 API
