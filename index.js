@@ -114,28 +114,37 @@ app.post('/generate-image', async (req, res) => {
     console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
 
     let temp = keyword_input;
+    temp = temp.trim();
 
-
+    let flag = 1;
+    if (temp == "") {
+        flag = 0;
+    }
 
     let imageUrl;
     try {
         // DALL-E가 처리할 작업
         if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
             if (flag == 0) {
+                console.log("dall-e로 생성\n\n");
                 imageUrl = await generateDalleImage(prompt, aspect, mood);
             } else if (flag == 1) {
+                console.log("ideo로 생성\n\n");
                 imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
             }
         }
         // Ideogram이 처리할 작업
         else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
+            console.log("ideo로 생성\n\n");
             imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
         }
         // 직접 입력
         else {
             if (flag == 0) {
+                console.log("dall-e로 생성\n\n");
                 imageUrl = await generateDalleImage(prompt, aspect, mood);
             } else if (flag == 1) {
+                console.log("ideo로 생성\n\n");
                 imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
             }
         }
@@ -316,27 +325,28 @@ app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
     const messageContent = values.prompt
     console.log('넘어온 데이터:', values);
-    let bookNumbers=[];
+    let bookNumbers = [];
 
     try {
 
         const insertQuery = 'INSERT INTO message_history (MESSAGE) VALUES (?)'
         db.query(insertQuery, values.prompt, (err, results) => {
-            if (err){
+            if (err) {
                 console.error('데이터 삽입 오류:', err);
                 return;
             }
         });
         // 첫 번째 쿼리 실행
-        if(values.phoneBook.length > 0){
+        if (values.phoneBook.length > 0) {
             bookNumbers = await new Promise((resolve, reject) => {
-            const placeholders = values.phoneBook.map(() => '?').join(',');
-            const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
-            db.query(query, values.phoneBook, (err, results) => {
-                if (err) return reject(err);
-                resolve(results.map(item => item.PHONE_NUMBER));
+                const placeholders = values.phoneBook.map(() => '?').join(',');
+                const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
+                db.query(query, values.phoneBook, (err, results) => {
+                    if (err) return reject(err);
+                    resolve(results.map(item => item.PHONE_NUMBER));
+                });
             });
-        });}
+        }
 
         console.log('조회된 번호:', bookNumbers);
         console.log('직접입력:', values.phoneNumbers);
