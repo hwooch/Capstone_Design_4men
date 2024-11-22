@@ -236,6 +236,7 @@ const saveImage = async (image_url, filePath) => {
             .resize(800) // 지금 사진이 1024x1024로 생성되는데
             // resize안에 800 넣으면 800x800으로 생성됨
             .png({ quality })
+            .withMetadata(false) // 메타데이터 제거
             .toFile(currentTempPath);
 
         // 파일 크기를 확인하고 품질 조정
@@ -246,6 +247,7 @@ const saveImage = async (image_url, filePath) => {
             // 다음 임시 파일에 저장
             await sharp(currentTempPath)
                 .png({ quality })
+                .withMetadata(false) // 메타데이터 제거
                 .toFile(nextTempPath);
 
             // 파일 크기 재확인
@@ -277,6 +279,11 @@ const saveImage = async (image_url, filePath) => {
                 fs.unlinkSync(tempFile);
             }
         });
+        await sharp(originalPath)
+            .jpeg({ quality: 80, progressive: true }) // PNG를 JPEG로 변환
+            .toFile(`${originalPath}1`);
+
+        fs.renameSync(`${originalPath}1`, originalPath); // 임시 파일을 원본 경로로 이동
     }
 }
 
@@ -285,17 +292,19 @@ app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
     const messageContent = values.prompt
     console.log('넘어온 데이터:', values);
+    let bookNumbers=[];
 
     try {
         // 첫 번째 쿼리 실행
-        const bookNumbers = await new Promise((resolve, reject) => {
+        if(values.phoneBook.length > 0){
+            bookNumbers = await new Promise((resolve, reject) => {
             const placeholders = values.phoneBook.map(() => '?').join(',');
             const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
             db.query(query, values.phoneBook, (err, results) => {
                 if (err) return reject(err);
                 resolve(results.map(item => item.PHONE_NUMBER));
             });
-        });
+        });}
 
         console.log('조회된 번호:', bookNumbers);
         console.log('직접입력:', values.phoneNumbers);
