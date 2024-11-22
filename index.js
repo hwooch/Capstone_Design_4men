@@ -36,7 +36,7 @@ const db = mysql.createConnection({
 // db연결
 db.connect(err => {
     if (err) {
-        //console.error('DB 연결 실패:', err);
+        console.error('DB 연결 실패:', err);
         return;
     }
     console.log('MySQL 연결 성공!');
@@ -47,9 +47,18 @@ app.use(express.json());
 
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
-async function generateIdeogramImage(prompt, mood, aspect) {
-    const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서`;
-    //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려서`;
+async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
+    //console.log(prompt, keyword_input, aspect, mood);
+    let finalPrompt;
+    if (keyword_input == "") {
+        finalPrompt = `(${prompt} )를 표현하는 이미지를 그릴건데, 텍스트를 절대 포함하지 않고 ${aspect} 형식으로 그려줘`;
+    } else {
+        finalPrompt = `(${prompt} )를 표현하는 이미지를 그릴건데, \"${keyword_input}\" 를 꼭 넣어서 ${aspect} 형식으로 그려줘`;
+        //finalPrompt = `불꽃놀이를 표현하는 이미지를 그릴건데, \"${keyword_input}\" 를 꼭 넣어서 ${aspect} 형식으로 그려줘`;
+        console.log("\nAI에게 넘겨지는 최종 문장\n" + finalPrompt);
+    }
+
+    //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려줘`;
 
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
@@ -68,6 +77,7 @@ async function generateIdeogramImage(prompt, mood, aspect) {
             }),
         });
         const body = await response.json();
+        console.log(body);
         return body.data[0]?.url; // 이미지 URL 반환
     } catch (error) {
         console.error("Ideogram API 호출 오류:", error);
@@ -100,21 +110,35 @@ async function generateDalleImage(prompt, aspect, mood) {
 
 //이미지 생성 함수 실행
 app.post('/generate-image', async (req, res) => {
-    const { prompt, aspect, mood } = req.body;
+    const { prompt, keyword_input, aspect, mood } = req.body;
     console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
+
+    let temp = keyword_input;
+
+
 
     let imageUrl;
     try {
         // DALL-E가 처리할 작업
         if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
-            imageUrl = await generateDalleImage(prompt, aspect, mood);
+            if (flag == 0) {
+                imageUrl = await generateDalleImage(prompt, aspect, mood);
+            } else if (flag == 1) {
+                imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
+            }
         }
         // Ideogram이 처리할 작업
         else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
-            imageUrl = await generateIdeogramImage(prompt, mood);
+            imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
         }
         // 직접 입력
-        else imageUrl = await generateDalleImage(prompt, aspect, mood);
+        else {
+            if (flag == 0) {
+                imageUrl = await generateDalleImage(prompt, aspect, mood);
+            } else if (flag == 1) {
+                imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
+            }
+        }
 
         res.json({ imageUrl });
         sendimagePath = imageUrl;
@@ -149,7 +173,7 @@ app.get('/api/phonebook', (req, res) => {
             }
             const message_history = results.map(item => item.MESSAGE);
             console.log(message_history);
-            const result = {phone_book, message_history};
+            const result = { phone_book, message_history };
             res.send(result);
         });
 
