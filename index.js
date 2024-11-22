@@ -370,7 +370,7 @@ app.post('/api/sendNumbers', async (req, res) => {
         console.log("조회된 이미지 경로:", sendimagePath);
 
         // fetch 호출
-        const response = await fetch('http://localhost:8080/api/data', {
+        const response = await fetch('http://3.27.171.67:8080/api/data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
