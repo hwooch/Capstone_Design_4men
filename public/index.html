@@ -113,7 +113,6 @@
 
 
     <script>
-
         let images = []; // 서버에서 받은 이미지 목록을 저장할 배열
         let currentIndex = 0; //이미지를 나타내는 인덱스
         const defaultImage = 'basic.png'; // 기본 이미지 경로 설정
@@ -326,13 +325,6 @@
             console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
         });
 
-        //전화번호에서 추가
-        document.getElementById('add-phonenumber').addEventListener('click', () => {
-            const phonenumber = phonenumberInput.value.trim();
-            addList(phonenumber, addedNumber);
-            phonenumberInput.value = '';
-        });
-
         //발송하기
         document.getElementById('send-button').addEventListener('click', () => {
             // 추가하려는 데이터
@@ -477,6 +469,30 @@
             });
         });
 
+        document.getElementById('add-phonenumber').addEventListener('click', () => {
+            const phonenumber = phonenumberInput.value.trim(); // 입력된 전화번호
+
+            // 유효성 검사: 숫자 11자리만 허용
+            if (/^\d{11}$/.test(phonenumber)) {
+                // 중복 여부 확인
+                const isDuplicate = addedNumber.includes(phonenumber);
+
+                if (isDuplicate) {
+                    alert('이미 추가된 전화번호입니다.');
+                    phonenumberInput.focus(); // 입력 필드에 포커스
+                    return; // 중복이면 추가하지 않음
+                }
+                
+                // 유효한 경우, addList 함수를 호출해 동일한 박스를 생성
+                addList(phonenumber, addedNumber);
+                phonenumberInput.value = ''; // 입력 필드 초기화
+                phonenumberInput.focus(); // 입력 필드에 다시 포커스
+            } else {
+                // 유효하지 않은 경우 경고 메시지 표시
+                alert('전화번호는 숫자 11자리여야 합니다.');
+                phonenumberInput.focus(); // 입력 필드에 포커스
+            }
+        });
     </script>
 </body>
 
