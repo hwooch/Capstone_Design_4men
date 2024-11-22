@@ -336,9 +336,11 @@
         //발송하기
         document.getElementById('send-button').addEventListener('click', () => {
             // 추가하려는 데이터
+            const prompt = document.getElementById("prompt").value;
             const dataToSend = {
                 phoneBook: addedPhoneBook, // 기존의 전화번호 데이터
-                imageSrc: image.src          // img의 src 추가
+                imageSrc: image.src, 
+                prompt         // img의 src 추가
             };
 
             fetch('/api/sendNumbers', {
