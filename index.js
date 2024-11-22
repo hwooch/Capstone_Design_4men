@@ -283,7 +283,7 @@ const saveImage = async (image_url, filePath) => {
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
-    const messageContent = "안녕하세요 테스트입니다.";
+    const messageContent = '서울 불꽃축제 안내!  안녕하세요! 여러분을 서울의 환상적인 불꽃축제로 초대합니다!  날짜: 2024년 10월 15일 (토)  시간: 오후 7시 30분  장소: 한강공원 여의도  올해도 어김없이 멋진 불꽃이 하늘을 수놓을 예정입니다.  가족, 친구들과 함께 잊지 못할 순간을 만들어보세요!  다양한 먹거리와 즐길 거리도 마련되어 있으니 많은 참여 부탁드립니다!  문의: 010-1234-5678  여러분의 많은 관심과 참여를 기다립니다!';
     console.log('넘어온 데이터:', values);
 
     try {
