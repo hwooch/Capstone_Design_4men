@@ -47,9 +47,18 @@ app.use(express.json());
 
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
-async function generateIdeogramImage(prompt, mood, aspect) {
-    const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서`;
-    //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려서`;
+async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
+    //console.log(prompt, keyword_input, aspect, mood);
+    let finalPrompt;
+    if (keyword_input == "") {
+        finalPrompt = `(${prompt} )를 표현하는 이미지를 그릴건데, 텍스트를 절대 포함하지 않고 ${aspect} 형식으로 그려줘`;
+    } else {
+        finalPrompt = `(${prompt} )를 표현하는 이미지를 그릴건데, \"${keyword_input}\" 를 꼭 넣어서 ${aspect} 형식으로 그려줘`;
+        //finalPrompt = `불꽃놀이를 표현하는 이미지를 그릴건데, \"${keyword_input}\" 를 꼭 넣어서 ${aspect} 형식으로 그려줘`;
+        console.log("\nAI에게 넘겨지는 최종 문장\n" + finalPrompt);
+    }
+
+    //const finalPrompt = `${prompt}를 표현하는 그림을 그릴건데 \"${text}" 글자를 그림에 포함시켜줘. ${aspect} 형식으로 그려줘`;
 
     try {
         const response = await fetch("https://api.ideogram.ai/generate", {
@@ -68,6 +77,7 @@ async function generateIdeogramImage(prompt, mood, aspect) {
             }),
         });
         const body = await response.json();
+        console.log(body);
         return body.data[0]?.url; // 이미지 URL 반환
     } catch (error) {
         console.error("Ideogram API 호출 오류:", error);
@@ -100,21 +110,44 @@ async function generateDalleImage(prompt, aspect, mood) {
 
 //이미지 생성 함수 실행
 app.post('/generate-image', async (req, res) => {
-    const { prompt, aspect, mood } = req.body;
+    const { prompt, keyword_input, aspect, mood } = req.body;
     console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
+
+    let temp = keyword_input;
+    temp = temp.trim();
+
+    let flag = 1;
+    if (temp == "") {
+        flag = 0;
+    }
 
     let imageUrl;
     try {
         // DALL-E가 처리할 작업
         if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
-            imageUrl = await generateDalleImage(prompt, aspect, mood);
+            if (flag == 0) {
+                console.log("dall-e로 생성\n\n");
+                imageUrl = await generateDalleImage(prompt, aspect, mood);
+            } else if (flag == 1) {
+                console.log("ideo로 생성\n\n");
+                imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
+            }
         }
         // Ideogram이 처리할 작업
         else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
-            imageUrl = await generateIdeogramImage(prompt, mood);
+            console.log("ideo로 생성\n\n");
+            imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
         }
         // 직접 입력
-        else imageUrl = await generateDalleImage(prompt, aspect, mood);
+        else {
+            if (flag == 0) {
+                console.log("dall-e로 생성\n\n");
+                imageUrl = await generateDalleImage(prompt, aspect, mood);
+            } else if (flag == 1) {
+                console.log("ideo로 생성\n\n");
+                imageUrl = await generateIdeogramImage(prompt, temp, aspect, mood);
+            }
+        }
 
         res.json({ imageUrl });
         sendimagePath = imageUrl;
@@ -149,7 +182,7 @@ app.get('/api/phonebook', (req, res) => {
             }
             const message_history = results.map(item => item.MESSAGE);
             console.log(message_history);
-            const result = {phone_book, message_history};
+            const result = { phone_book, message_history };
             res.send(result);
         });
 
@@ -236,6 +269,7 @@ const saveImage = async (image_url, filePath) => {
             .resize(800) // 지금 사진이 1024x1024로 생성되는데
             // resize안에 800 넣으면 800x800으로 생성됨
             .png({ quality })
+            .withMetadata(false) // 메타데이터 제거
             .toFile(currentTempPath);
 
         // 파일 크기를 확인하고 품질 조정
@@ -246,6 +280,7 @@ const saveImage = async (image_url, filePath) => {
             // 다음 임시 파일에 저장
             await sharp(currentTempPath)
                 .png({ quality })
+                .withMetadata(false) // 메타데이터 제거
                 .toFile(nextTempPath);
 
             // 파일 크기 재확인
@@ -277,6 +312,11 @@ const saveImage = async (image_url, filePath) => {
                 fs.unlinkSync(tempFile);
             }
         });
+        await sharp(originalPath)
+            .jpeg({ quality: 80, progressive: true }) // PNG를 JPEG로 변환
+            .toFile(`${originalPath}1`);
+
+        fs.renameSync(`${originalPath}1`, originalPath); // 임시 파일을 원본 경로로 이동
     }
 }
 
@@ -285,17 +325,28 @@ app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
     const messageContent = values.prompt
     console.log('넘어온 데이터:', values);
+    let bookNumbers = [];
 
     try {
-        // 첫 번째 쿼리 실행
-        const bookNumbers = await new Promise((resolve, reject) => {
-            const placeholders = values.phoneBook.map(() => '?').join(',');
-            const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
-            db.query(query, values.phoneBook, (err, results) => {
-                if (err) return reject(err);
-                resolve(results.map(item => item.PHONE_NUMBER));
-            });
+
+        const insertQuery = 'INSERT INTO message_history (MESSAGE) VALUES (?)'
+        db.query(insertQuery, values.prompt, (err, results) => {
+            if (err) {
+                console.error('데이터 삽입 오류:', err);
+                return;
+            }
         });
+        // 첫 번째 쿼리 실행
+        if (values.phoneBook.length > 0) {
+            bookNumbers = await new Promise((resolve, reject) => {
+                const placeholders = values.phoneBook.map(() => '?').join(',');
+                const query = `SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME IN (${placeholders})`;
+                db.query(query, values.phoneBook, (err, results) => {
+                    if (err) return reject(err);
+                    resolve(results.map(item => item.PHONE_NUMBER));
+                });
+            });
+        }
 
         console.log('조회된 번호:', bookNumbers);
         console.log('직접입력:', values.phoneNumbers);

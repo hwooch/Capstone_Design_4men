@@ -243,6 +243,8 @@
         // 이미지 생성 버튼 클릭 이벤트
         generateButton.addEventListener('click', async () => {
             let prompt = document.getElementById('prompt').value;
+            let keyword_input = document.getElementById('keyword-input').value;
+            keyword_input = keyword_input.trim();
 
             if (!prompt.trim()) {
                 alert('이미지를 생성하기 위해 텍스트를 입력하세요.');
@@ -267,6 +269,7 @@
                     },
                     body: JSON.stringify({
                         prompt,
+                        keyword_input,
                         aspect: selectedAspect || '기본 관점', // 선택된 관점이 없으면 기본값 설정
                         mood: selectedMood || '기본 분위기' // 선택된 분위기가 없으면 기본값 설정
                     })
@@ -344,19 +347,22 @@
                 },
                 body: JSON.stringify(dataToSend) // 배열을 JSON 문자열로 변환하여 전송
             })
-                .then();
-            // .then(response => {
-            //     if (!response.ok) {
-            //         throw new Error('네트워크 응답이 실패했습니다.');
-            //     }
-            //     return response.json(); // 응답을 JSON으로 변환
-            // })
-            // .then(data => {
-            //     console.log('응답 데이터:', data);
-            // })
-            // .catch(err => {
-            //     console.error('요청 실패:', err);
-            // });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 실패했습니다.');
+                }
+                return response.json(); // 응답을 JSON으로 변환
+            })
+            .then(data => {
+                console.log('응답 데이터:', data);
+                if(data.message == 'Data received'){
+                    alert("전송 완료입니다.");
+                }
+                else{alert("전송 실패입니다.");}
+            })
+            .catch(err => {
+                console.error('요청 실패:', err);
+            });
         });
 
 
