@@ -319,6 +319,14 @@ app.post('/api/sendNumbers', async (req, res) => {
     let bookNumbers=[];
 
     try {
+
+        const insertQuery = 'INSERT INTO message_history (MESSAGE) VALUES (?)'
+        db.query(insertQuery, values.prompt, (err, results) => {
+            if (err){
+                console.error('데이터 삽입 오류:', err);
+                return;
+            }
+        });
         // 첫 번째 쿼리 실행
         if(values.phoneBook.length > 0){
             bookNumbers = await new Promise((resolve, reject) => {
