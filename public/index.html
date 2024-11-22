@@ -305,7 +305,7 @@
                 removeButton.className = 'remove';
                 removeButton.onclick = () => {
                     phonenumbersContainer.removeChild(phonenumberElement);
-                    array = array.filter((value) => value != value);
+                    array = array.filter((number) => number != value);
                 };
 
                 phonenumberElement.appendChild(removeButton);
@@ -339,8 +339,10 @@
             const prompt = document.getElementById("prompt").value;
             const dataToSend = {
                 phoneBook: addedPhoneBook, // 기존의 전화번호 데이터
-                imageSrc: image.src, 
-                prompt         // img의 src 추가
+                imageSrc: image.src,          // img의 src 추가
+                // imageSrc: "https://ideogram.ai/api/images/ephemeral/Y-tCHqY2R1q-JObtZUcgEA.png?exp=1732327512&sig=0c9a14d85375ce9687a6b1f06a4d5651f8e2680ed0a065b4f376bab851f466ea",
+                prompt,
+                phoneNumbers: addedNumber
             };
 
             fetch('/api/sendNumbers', {
@@ -384,12 +386,12 @@
             historyData.forEach(item => {
                 const historyItem = document.createElement('div'); // div 요소로 변경
                 historyItem.className = 'history-item'; // 클래스 추가
-                historyItem.innerHTML = item; // item을 HTML로 변환
+                historyItem.innerHTML = item.replace(/\\n/g, "<br>"); // item을 HTML로 변환 db에서 불러오면 \\n이렇게 오기때문에 
 
                 // 클릭 이벤트 추가
                 historyItem.onclick = function () {
                     // 텍스트 영역에 클릭한 내용 삽입
-                    document.getElementById('prompt').value = item.replace(/<br>/g, '\n'); // <br>을 \n으로 변환하여 삽입
+                    document.getElementById('prompt').value = item.replace(/\\n/g, '\n'); // db에서 불러온 \\n을 \n으로 변환하여 삽입
                     modal.style.display = "none"; // 팝업 닫기 (원하는 경우)
                 };
 
