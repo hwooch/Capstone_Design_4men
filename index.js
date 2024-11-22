@@ -31,7 +31,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '1234',
-    database: 'pstonedbpreca'
+    database: 'precapstonedb'
 });
 // db연결
 db.connect(err => {
@@ -88,7 +88,15 @@ async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
 //DALL-E 사용 함수
 async function generateDalleImage(prompt, aspect, mood) {
     try {
-        const finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그려서 ${mood} 느낌으로 그려줘`;
+        let finalPrompt;
+        if (aspect == "기본 관점") {
+            aspect = "너가 원하는";
+        }
+        if (mood == "기본 분위기") {
+            mood = "너가 원하는";
+        }
+        finalPrompt = `${prompt}. 텍스트를 포함하지 않고 ${aspect} 형식으로 그리는데 ${mood} 느낌으로 그려줘`;
+        console.log("\nAI에게 넘겨지는 최종 문장\n" + finalPrompt);
         const response = await openai.images.generate({
             model: "dall-e-3",
             prompt: finalPrompt,
@@ -399,6 +407,22 @@ app.get('/api/images', async (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+app.get('/api/phonebook/:name', (req, res) => {
+    const bookName = req.params.name; // URL 파라미터에서 주소록 이름 가져오기
+    const query = 'SELECT PHONE_NUMBER FROM phone_number WHERE BOOK_NAME = ?'; // 쿼리에서 파라미터 사용
+
+    db.query(query, [bookName], (err, results) => {
+        if (err) {
+            console.error('쿼리 실패:', err);
+            res.status(500).send('DB 조회 실패');
+            return;
+        }
+        const phone_numbers = results.map(item => item.PHONE_NUMBER);
+        res.json(phone_numbers); // 전화번호 배열을 JSON 형식으로 응답
+    });
+});
 
 // 서버 시작
 app.listen(port, () => {
