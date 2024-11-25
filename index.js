@@ -50,11 +50,11 @@ async function summarizeText(text) {
     try {
         const summaryPrompt = `
         "${text}"
-        광고 문자에서 날짜, 전화번호를 제외하고 한문장 정도로 요약해줘.
+        위 텍스트에서 날짜, 일시, 전화번호를 제거해줘. 그리고 두 문장 이내로 요약해줘.
         `;
         
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-3.5-turbo", // 모델 이름 확인 필요
             messages: [
                 { role: "system", content: "You are a helpful assistant for summarizing text." },
                 { role: "user", content: summaryPrompt }
@@ -72,13 +72,14 @@ async function summarizeText(text) {
     }
 }
 
+
 //console.log(process.env.OPENAI_API_KEY + "\n\n" + process.env.IDEOGRAM_API_KEY);
 // Ideogram API 호출 함수
 async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
     //console.log(prompt, keyword_input, aspect, mood);
     let finalPrompt;
     if (keyword_input == "") {
-        finalPrompt = `(${prompt} ). 텍스트가 절대 들어가지 않게 ${aspect} 형식으로 이미지 생성해줘. `;
+        finalPrompt = `(${prompt} ). ${aspect} 형식으로 절대 텍스트가 포함되지 않게 이미지 생성해줘. `;
         console.log("AI에게 넘겨지는 최종 문장\n" + finalPrompt);
     } else {
         finalPrompt = `(${prompt} ), 텍스트는 절대 포함하지 말고 \"${keyword_input}\" 만 꼭 넣어서 ${aspect} 형식으로 그려줘`;
@@ -100,7 +101,7 @@ async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
                     "prompt": finalPrompt,
                     "model": "V_2_TURBO",
                     "negative_prompt": "text, logo, watermark",
-                    "style_type": mood, // ANIME, AUTO, DESIGN, GENERAL, REALISTIC, RENDER_3D에 맞춰 적용
+                    "style_type": mood, // AUTO, DESIGN, GENERAL, REALISTIC, RENDER_3D에 맞춰 적용
                     "negative_prompt": "text, number"
                 }
             }),
@@ -124,7 +125,7 @@ async function generateDalleImage(prompt, aspect, mood) {
         if (mood == "기본 분위기") {
             mood = "너가 원하는";
         }
-        finalPrompt = `${prompt}. 해당 문장을 텍스트를 절대 포함하지 않고 ${aspect} 형식으로 그리는데 ${mood} 느낌으로 그려줘`;
+        finalPrompt = `${prompt}. 해당 문장을 ${aspect} 형식과 ${mood} 느낌으로 이미지를 생성하는데 절대 텍스트가 들어가지 않게 해줘.`;
         console.log("\nAI에게 넘겨지는 최종 문장\n" + finalPrompt);
         const response = await openai.images.generate({
             model: "dall-e-3",
@@ -167,7 +168,7 @@ app.post('/generate-image', async (req, res) => {
                 imageUrl = await generateDalleImage(summarizedPrompt, aspect, mood);
             } else {
                 // mood 값 검증 및 기본값 설정
-                if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"].includes(mood)) {
+                if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D"].includes(mood)) {
                     console.log("유효하지 않은 mood 값입니다. 기본값 AUTO로 설정.");
                     mood = "AUTO";
                 }
@@ -176,7 +177,7 @@ app.post('/generate-image', async (req, res) => {
             }
         } else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
             // mood 값 검증 및 기본값 설정
-            if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"].includes(mood)) {
+            if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D"].includes(mood)) {
                 console.log("유효하지 않은 mood 값입니다. 기본값 AUTO로 설정.");
                 mood = "AUTO";
             }
@@ -188,7 +189,7 @@ app.post('/generate-image', async (req, res) => {
                 imageUrl = await generateDalleImage(summarizedPrompt, aspect, mood);
             } else {
                 // mood 값 검증 및 기본값 설정
-                if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"].includes(mood)) {
+                if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D"].includes(mood)) {
                     console.log("유효하지 않은 mood 값입니다. 기본값 AUTO로 설정.");
                     mood = "AUTO";
                 }
