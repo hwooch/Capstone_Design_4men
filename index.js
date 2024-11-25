@@ -429,7 +429,8 @@ const saveImage = async (image_url, filePath) => {
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
-    const messageContent = values.prompt
+    const messageContent = values.prompt;
+    messageContent = messageContent.replace(/\n/g, "\\n");
     console.log('넘어온 데이터:', values);
     let bookNumbers = [];
 
