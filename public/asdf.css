@@ -230,7 +230,7 @@ button:disabled {
 .phonenumber-list {
     /* 전화번호 입력하고 추가할때 나타나는 리스트 컨테이너 */
     margin-top: 10px;
-    max-height: 150px;
+    max-height: 350px;
     display: block;
     overflow-y: auto;
     margin-bottom: 15px;
