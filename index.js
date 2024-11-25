@@ -50,11 +50,11 @@ async function summarizeText(text) {
     try {
         const summaryPrompt = `
         "${text}"
-        광고 문자에서 일시, 전화번호를 제외하고 무엇을, 어디서에 대한 정보만 추출해줘.
+        광고 문자에서 날짜, 전화번호를 제외하고 한문장 정도로 요약해줘.
         `;
         
         const response = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: "You are a helpful assistant for summarizing text." },
                 { role: "user", content: summaryPrompt }
