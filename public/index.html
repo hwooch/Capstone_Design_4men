@@ -158,8 +158,7 @@
             document.getElementById('generated-image').src = selectedImageSrc;
         }
 
-        //화면 로드 시 db에서 주소록 불러옴    
-        window.onload = () => {
+        const loadPhonebook = () => {
             fetch('/api/phonebook')
                 .then(response => {
                     if (!response.ok) {
@@ -202,6 +201,11 @@
                 .catch(err => {
                     console.error('요청 실패:', err);
                 });
+        }
+
+        //화면 로드 시 db에서 주소록, 발송내역 불러옴    
+        window.onload = () => {
+            loadPhonebook();
         };
 
         let selectedAspect = ''; // 선택된 주요 관점
@@ -413,6 +417,7 @@
                 .catch(err => {
                     console.error('요청 실패:', err);
                 });
+                loadPhonebook();
         });
 
 

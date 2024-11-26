@@ -429,15 +429,17 @@ const saveImage = async (image_url, filePath) => {
 //전송버튼 클릭 시 db에서 번호 조회해옴
 app.post('/api/sendNumbers', async (req, res) => {
     const values = req.body;
-    const messageContent = values.prompt;
-    messageContent = messageContent.replace(/\n/g, "\\n");
+    let messageContent = values.prompt;
+    if (messageContent.includes('\n')) {
+        messageContent = messageContent.replace(/\n/g, '\\n');
+    }
     console.log('넘어온 데이터:', values);
     let bookNumbers = [];
 
     try {
 
         const insertQuery = 'INSERT INTO message_history (MESSAGE) VALUES (?)'
-        db.query(insertQuery, values.prompt, (err, results) => {
+        db.query(insertQuery, messageContent, (err, results) => {
             if (err) {
                 console.error('데이터 삽입 오류:', err);
                 return;
@@ -480,7 +482,7 @@ app.post('/api/sendNumbers', async (req, res) => {
             body: JSON.stringify({
                 sendimagePath,
                 sendNumbers,
-                messageContent
+                messageContent : values.prompt
             })
         });
 
