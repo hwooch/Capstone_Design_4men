@@ -254,6 +254,22 @@ app.get('/api/phonebook', (req, res) => {
     });
 });
 
+app.get('/api/phonebook2', (req, res) => {
+
+        const query2 = 'SELECT MESSAGE FROM message_history';
+        db.query(query2, (err, results) => { //문자 전송내역
+            if (err) {
+                console.error('쿼리 실패:', err);
+                res.status(500).send('DB 조회 실패');
+                return;
+            }
+            const message_history = results.map(item => item.MESSAGE);
+            console.log(message_history);
+            const result = { message_history };
+            res.send(result);
+        });
+});
+
 //이미지 생성시 url받아서 db에 입력
 const insertImage = (url) => {
     const now = new Date();
