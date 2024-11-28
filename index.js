@@ -19,7 +19,7 @@ const translate = require('@vitalets/google-translate-api');
 const app = express();
 const port = 3000;
 const openai = new OpenAI();
-const IMAGE_PATH = "c:/castoneImage"   //서버에서의 path
+const IMAGE_PATH = "/home/ec2-user/castoneImage"   //서버에서의 path
 
 //db와 연관되어 페이지를 한번열때마다 생성되는 seq
 let image_seq;
@@ -29,8 +29,8 @@ let sendNumbers;
 //객체 생성
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password: '1234',
+    user: 'fourman',
+    password: 'fourMan1234!',
     database: 'precapstonedb'
 });
 // db연결
@@ -474,7 +474,7 @@ app.post('/api/sendNumbers', async (req, res) => {
         console.log("조회된 이미지 경로:", sendimagePath);
 
         // fetch 호출
-        const response = await fetch('http://localhost:8080/api/data', {
+        const response = await fetch('http://3.27.171.67:8080/api/data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
