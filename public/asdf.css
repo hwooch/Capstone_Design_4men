@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', Arial, sans-serif; /* Material-UI 기본 폰트 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -16,7 +16,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Material-UI 스타일 그림자 */
     position: relative;
     margin: 0 auto;
 }
@@ -28,7 +28,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #BDBDBD; /* Divider Color */
 }
 
 .middle-panel {
@@ -38,7 +38,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #BDBDBD; /* Divider Color */
 }
 
 .right-panel {
@@ -53,15 +53,19 @@ body {
 h2 {
     font-size: 24px;
     margin: 0px 0 10px;
+    color: #212121; /* Primary Text */
 }
 
 h3 {
     font-size: 18px;
+    font-weight: 400;
+    color: #212121; /* Primary Text */
 }
 
 p {
     font-size: 15px;
-    margin: 10px 0 10px;
+    margin: 10px 0;
+    color: #212121; /* Secondary Text */
 }
 
 textarea {
@@ -70,7 +74,9 @@ textarea {
     height: 300px;
     min-height: 50px;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #BDBDBD; /* Divider Color */
+    color: #212121; /* Primary Text */
+    background-color: #FFFFFF; /* Input 배경 */
     border-radius: 4px;
     resize: none;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -92,34 +98,51 @@ input[type="text"] {
     flex: 1;
 
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #BDBDBD; /* Divider Color */
+    color: #212121; /* Primary Text */
+    background-color: #FFFFFF; /* Input 배경 */
     border-radius: 4px;
     margin-right: 10px;
     height: 40px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+
+textarea:focus, input[type="text"]:focus {
+    border-color: #1976D2; /* Dark Primary Color */
+    outline: none;
+}
 button {
-    padding: 10px 15px;
+    padding: 6px 16px; /* Material-UI 기본 패딩 */
     border: none;
     border-radius: 4px;
-    background-color: #28a745;
-    color: white;
+    background-color: #2196F3; /* Primary Color */
+    color: #FFFFFF; /* Text / Icons */
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase; /* 대문자 */
     cursor: pointer;
-    height: 40px;
-    transition: background-color 0.3s;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 기본 그림자 */
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 button:hover {
-    /* 버튼에 마우스 올려둘때 색상 변화 */
-    background-color: #218838;
+    background-color: #1976D2; /* Dark Primary Color */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Hover 상태 그림자 */
 }
 
 button:disabled {
-    /* 이미지 생성 버튼이 비활성화 되었을때 속성 */
-    background-color: #619578;
+    background-color: #9E9E9E; /* Accent Color */
+    color: rgba(255, 255, 255, 0.7);
     cursor: not-allowed;
+    box-shadow: none;
     opacity: 0.6;
+}
+
+button:active {
+    background-color: #BBDEFB; /* Light Primary Color */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* Active 상태 그림자 */
+    transform: translateY(1px); /* 클릭 시 눌리는 효과 */
 }
 
 .button-group {
@@ -130,20 +153,49 @@ button:disabled {
 }
 
 .button-group button {
-    /* 그 컨테이너 속 버튼 속성들 */
-    margin-left: 14px;
+    margin-left: 10px;
     margin-bottom: 8px;
     min-height: 35px;
     max-height: 35px;
-    padding: 1px 12px;
+    padding: 6px 16px; /* Material-UI 기본 패딩 */
     border: none;
-    border-radius: 10px;
-    background-color: #28a745;
-    color: white;
+    border-radius: 8px; /* 둥근 모서리 */
+    background-color: #2196F3; /* Primary Color */
+    color: #FFFFFF; /* Text / Icons */
+    font-family: 'Roboto', Arial, sans-serif; /* Material-UI 기본 폰트 */
+    font-size: 14px; /* Material-UI 폰트 크기 */
+    font-weight: 500; /* Material-UI 기본 텍스트 두께 */
+    text-transform: uppercase; /* Material-UI 스타일 */
     cursor: pointer;
-    transition: background-color 0.3s;
-    height: auto;
+    transition: background-color 0.3s, box-shadow 0.3s; /* 부드러운 전환 효과 */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Material-UI 기본 그림자 */
 }
+
+.button-group button:hover {
+    background-color: #1976D2; /* Dark Primary Color */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Hover 시 강조된 그림자 */
+}
+
+.button-group button:active {
+    background-color: #BBDEFB; /* Light Primary Color */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* 클릭 시 그림자 축소 */
+    transform: translateY(1px); /* 살짝 눌리는 효과 */
+}
+
+.button-group button:disabled {
+    background-color: #9E9E9E; /* Accent Color */
+    color: rgba(255, 255, 255, 0.7); /* Text / Icons with reduced opacity */
+    cursor: not-allowed;
+    box-shadow: none; /* 비활성화 시 그림자 제거 */
+    opacity: 0.6;
+}
+
+.button-group button.selected {
+    background-color: #1976D2; /* Dark Primary Color */
+    color: #FFFFFF; /* Text / Icons */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* 선택된 버튼 강조 */
+}
+
 
 .aspect-input-field {
     display: block;
@@ -152,10 +204,7 @@ button:disabled {
     padding: 5px;
 }
 
-.button-group button.selected {
-    /* 생성유형의 버튼들이 선택되었을때 색상 변경 */
-    background-color: #186428;
-}
+
 
 .image-container-text {
     /* 이미지 생성 결과 글씨 속성 */
@@ -163,8 +212,14 @@ button:disabled {
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 10px;
+    color: #212121; /* Primary Text */
 }
 
+
+.image-container-generate img, .image-container-history img {
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Material-UI 스타일 */
+}
 
 .image-container-generate img {
     /* 생성된 이미지 속성 */
@@ -205,20 +260,38 @@ button:disabled {
     /* 주소록 칸인데 현재 미구현으로 빈칸 남겨두기위해 margin 속성만 추가 */
     width: 250px;   /* div의 너비 */
     height: 200px;  /* div의 높이 */
-    border: 1px solid #ccc;
-    overflow-y: auto; /* div 내부 스크롤 활성화 */
+    border: 1px solid #BDBDBD; /* Divider Color */
+    border-radius: 4px;
     padding: 10px;
+    background-color: #FFFFFF; /* White 배경 */
+    overflow-y: auto; /* div 내부 스크롤 활성화 */
 }
 
-.phonebook-list{
-    padding: 8px;
-    border-bottom: 1px solid #eee;
+.phonebook-list {
+    padding: 12px; /* 패딩을 늘려 여백 추가 */
+    border-bottom: 1px solid #BDBDBD; /* Divider Color 사용 */
+    font-family: 'Roboto', Arial, sans-serif; /* Material-UI 기본 폰트 */
+    font-size: 14px; /* 적절한 텍스트 크기 */
+    color: #212121; /* Primary Text */
+    background-color: #FFFFFF; /* 기본 배경색 */
+    transition: background-color 0.3s, box-shadow 0.3s; /* 부드러운 전환 효과 */
+    border-radius: 4px; /* 약간의 둥근 모서리 */
+    cursor: pointer; /* 클릭 가능 표시 */
 }
 
-/* 선택된 아이템에 적용될 스타일 */
+.phonebook-list:hover {
+    background-color: #F5F5F5; /* Hover 상태의 밝은 배경 */
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1); /* Hover 상태에서 부드러운 그림자 */
+}
+
 .selected {
-    background-color: lightblue;
-  }
+    background-color: #BBDEFB; /* Light Primary Color */
+    border-left: 4px solid #1976D2; /* Dark Primary Color로 강조 */
+    color: #1976D2; /* 선택된 항목 텍스트 강조 */
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1); /* 선택 상태에서 그림자 */
+    font-weight: 500; /* 선택된 항목의 텍스트 두께 증가 */
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; /* 전환 효과 */
+}
 
 .Addphonebook-button {
     /* 주소록 추가 버튼 */
@@ -228,46 +301,70 @@ button:disabled {
 }
 
 .phonenumber-list {
-    /* 전화번호 입력하고 추가할때 나타나는 리스트 컨테이너 */
     margin-top: 10px;
     max-height: 350px;
     display: block;
-    overflow-y: auto;
+    overflow-y: auto; /* 스크롤 가능 */
     margin-bottom: 15px;
-    text-align: center;
+    text-align: left; /* 정렬을 왼쪽으로 변경 */
+    padding: 10px; /* 리스트 컨테이너에 패딩 추가 */
+    background-color: #F5F5F5; /* 밝은 배경색 */
+    border: 1px solid #BDBDBD; /* Divider Color */
+    border-radius: 8px; /* 부드러운 모서리 */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Material-UI 스타일 그림자 */
 }
 
 .phonenumber {
-    /* 추가한 전화번호 */
-    margin-right: 5px;
     margin-bottom: 10px;
-    padding: 5px 10px;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    position: relative;
-    font-size: 12px;
-    color: #333;
+    padding: 8px 12px; /* 패딩을 늘려 여유 공간 추가 */
+    background-color: #E3F2FD; /* Light Primary Color */
+    border: 1px solid #BBDEFB; /* Light Primary Color로 테두리 강조 */
+    border-radius: 12px; /* Material-UI 스타일 둥근 모서리 */
+    font-size: 14px; /* 텍스트 크기 증가 */
+    color: #1976D2; /* Dark Primary Color */
+    display: inline-flex; /* 플렉스 레이아웃으로 X 버튼과 정렬 */
+    align-items: center; /* X 버튼과 텍스트의 수직 정렬 */
+    justify-content: space-between; /* 버튼과 텍스트의 간격 유지 */
+    gap: 8px; /* 텍스트와 X 버튼 간의 간격 */
+    transition: background-color 0.3s, box-shadow 0.3s; /* 부드러운 전환 효과 */
+    cursor: default; /* 기본 상태에서 선택 불가 */
+}
+
+.phonenumber:hover {
+    background-color: #BBDEFB; /* Hover 상태에서 강조된 배경 */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15); /* Hover 상태 그림자 */
 }
 
 .phonenumber .remove {
-    /* 전화번호 오른쪽의 X 버튼 */
-    margin-left: 5px;
+    margin-left: auto; /* 오른쪽 끝 정렬 */
+    padding: 0 8px; /* 버튼 크기를 적절히 조정 */
     cursor: pointer;
-    color: red;
-    font-weight: bold;
-    font-size: 12px;
+    color: #F44336; /* Material-UI Error Color */
+    font-weight: 500;
+    font-size: 14px; /* 크기를 약간 키움 */
+    border: 1px solid transparent; /* 기본 상태에서 보이지 않음 */
+    background-color: transparent; /* 투명한 배경 */
+    border-radius: 8px; /* 버튼 둥근 모서리 */
+    transition: color 0.3s, background-color 0.3s; /* 부드러운 전환 효과 */
+}
+
+.phonenumber .remove:hover {
+    background-color: rgba(244, 67, 54, 0.1); /* Hover 상태에서 연한 빨간색 배경 */
+    color: #D32F2F; /* Hover 상태에서 더 진한 빨간색 */
+    border-color: #D32F2F; /* Hover 상태에서 테두리 색상 추가 */
 }
 
 #phonenumber-input {
     /* 전화번호 입력 텍스트 칸 */
     font-size: 12px;
     flex: 1;
-
-    border: 1px solid #ccc;
     border-radius: 4px;
     margin-right: 10px;
     height: 20px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+#phonenumber-input:focus {
+    border-color: #1976D2; /* Dark Primary Color */
+    outline: none;
 }
 
 .send-button-container {
@@ -284,16 +381,12 @@ button:disabled {
 
 #send-history-button { 
     /* 발송 내역 버튼 속성*/
-    background-color: #28a745;
-    color: white;
     border-radius: 5px;
     padding: 10px 20px;
-    border: none;
 }
 
 #send-history-button:hover {
     /* 발송 내역 버튼에 마우스 올려두었을 때 */
-    background-color: #218838;
 }
 /* -----------------------------------------------  */
 
