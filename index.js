@@ -447,7 +447,7 @@ app.post('/api/sendNumbers', async (req, res) => {
 
 // 이미지 리스트를 가져오는 API
 app.get('/api/images', async (req, res) => {
-    db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ?', [image_seq], (error, results) => {
+    db.query('SELECT IMAGE_URL FROM image WHERE SEQ = ? ORDER BY IMAGE_PATH DESC', [image_seq], (error, results) => {
         if (error) throw error;
         console.log(results);
         const urlArray = results.map(row => row.IMAGE_URL);
