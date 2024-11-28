@@ -48,11 +48,13 @@ app.use(express.json());
 // 전달받은 텍스트를 요약하여 프롬프트 추출
 async function summarizeText(text) {
     try {
+        // 위 텍스트에서 날짜, 일시, 전화번호를 제거해줘. 그리고 두 문장 이내로 요약해줘.
         const summaryPrompt = `
         "${text}"
-        위 텍스트에서 날짜, 일시, 전화번호를 제거해줘. 그리고 두 문장 이내로 요약해줘.
+        위 텍스트에서 날짜, 일시, 전화번호를 제거해줘. 그리고 무엇을 전달하고자 하는지 3단어 이내로 요약해줘.
+        단어만 말해. 예를들어 "자전거","오토바이" 이런식으로
         `;
-        
+
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo", // 모델 이름 확인 필요
             messages: [
@@ -79,7 +81,7 @@ async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
     //console.log(prompt, keyword_input, aspect, mood);
     let finalPrompt;
     if (keyword_input == "") {
-        finalPrompt = `(${prompt} ). ${aspect} 형식으로 절대 텍스트가 포함되지 않게 이미지 생성해줘. `;
+        finalPrompt = `(${prompt}) 괄호에 포함된 문장을 ${aspect} 형식으로 텍스트가 절대로 포함되지 않게 해줘. never include text`;
         console.log("AI에게 넘겨지는 최종 문장\n" + finalPrompt);
     } else {
         finalPrompt = `(${prompt} ), 텍스트는 절대 포함하지 말고 \"${keyword_input}\" 만 꼭 넣어서 ${aspect} 형식으로 그려줘`;
@@ -117,6 +119,7 @@ async function generateIdeogramImage(prompt, keyword_input, aspect, mood) {
 
 //DALL-E 사용 함수
 async function generateDalleImage(prompt, aspect, mood) {
+    console.log("달이 시작");
     try {
         let finalPrompt;
         if (aspect == "기본 관점") {
@@ -125,7 +128,7 @@ async function generateDalleImage(prompt, aspect, mood) {
         if (mood == "기본 분위기") {
             mood = "너가 원하는";
         }
-        finalPrompt = `${prompt}. 해당 문장을 ${aspect} 형식과 ${mood} 느낌으로 이미지를 생성하는데 절대 텍스트가 들어가지 않게 해줘.`;
+        finalPrompt = `${prompt}. 해당 문장을 ${aspect} 형식과 ${mood} 느낌으로 이미지를 생성하는데 텍스트가 절대 들어가지 않게 해줘. never include text`;
         console.log("\nAI에게 넘겨지는 최종 문장\n" + finalPrompt);
         const response = await openai.images.generate({
             model: "dall-e-3",
@@ -134,77 +137,22 @@ async function generateDalleImage(prompt, aspect, mood) {
             size: "1024x1024",
         });
 
-// <<<<<<< HEAD
-//         console.log('AI의 대답 : ' + completion.choices[0].message.content);
-
-//         let generatedPrompt = `${completion.choices[0].message.content}을(를) 표현하는 그림을 그릴거야.`;
-//         // 이미지에 텍스트 필수로 넣고싶다고 선택되었다면 밑에 기능 완성할것
-//         // let selectText;
-//         // if (selectText == false){
-//         //     generatedPrompt = generatedPrompt + '다만, 그림에서 글자는 절대 포함하지 않고 그려줘';
-//         // }
-
-//         generatedPrompt = generatedPrompt + ' 다만, 그림에서 글자는 절대 포함하지 않고 그려줘. ';
-
-//         let response;
-//         let finalPrompt;
-//         let body;
-
-//         // OpenAI API를 호출하여 이미지 생성
-//         if (aspect === '자연') {
-//             finalPrompt = `${generatedPrompt}` + ' 그리고 자연을 중점으로 그릴거고' + moodValue + ' 느낌으로 그려줘'; // 1 대신 "자연 형식으로 바꿔줘" 삽입
-//             response = await openai.images.generate({
-//                 model: "dall-e-3",
-//                 prompt: finalPrompt,
-//                 n: 1,
-//                 size: "1024x1024",
-//             });
-//         } else if (aspect === '포스터') {
-//             // Ideogram API를 호출하여 이미지 생성
-//             finalPrompt = `${generatedPrompt}` + '포스터 형식으로 그릴거고 '+moodValue+' 느낌으로 그려줘';
-
-//             response = await fetch("https://api.ideogram.ai/generate", {
-//                 method: "POST",
-//                 headers: {
-//                     "Api-Key": process.env.IDEOGRAM_API_KEY,
-//                     "Content-Type": "application/json"
-//                 },
-//                 body: JSON.stringify({
-//                     "image_request": {
-//                         "prompt": finalPrompt,
-//                         "model": "V_2_TURBO", // V_1 , V_1_TURBO , V_2 , V_2_TURBO ( 총 4개 있음
-//                         "negative_prompt": "text, logo, watermark",
-//                         "style_type": "AUTO" //ANIME , AUTO , DESIGN , GENERAL , REALISTIC , RENDER_3D ( 총 6개있음
-//                     }
-//                 }),
-//             });
-//             body = await response.json();
-//             console.log(body.data[0].url);
-
-//         } else { // 기본
-//             finalPrompt = `${generatedPrompt}` + ' 그리고 ' + moodValue + ' 느낌으로 그려줘'; // 3 대신 aspect + " 형식으로 바꿔줘" 삽입
-//             response = await openai.images.generate({
-//                 model: "dall-e-3", // ""
-//                 prompt: finalPrompt,
-//                 n: 1,
-//                 size: "1024x1024",
-//             });
-// =======
         const imageUrl = response.data[0]?.url;
         if (!imageUrl) {
             throw new Error('이미지 생성 실패');
         }
-
+        console.log("달이 끝");
         return imageUrl;
     } catch (error) {
         console.error("DALL-E 이미지 생성 오류:", error);
         throw error;
     }
+
 }
 
 //이미지 생성 함수 실행
 app.post('/generate-image', async (req, res) => {
-    const { prompt, keyword_input, aspect} = req.body;
+    const { prompt, keyword_input, aspect } = req.body;
     let mood = req.body.mood;
     console.log('웹페이지로부터 받은 데이터:', prompt, '\n생성 유형:', aspect, mood);
 
@@ -218,7 +166,7 @@ app.post('/generate-image', async (req, res) => {
 
         let imageUrl;
         // 기존 로직 유지
-        if (["포스터", "컨셉 아트", "일러스트", "커버 아트"].includes(aspect)) {
+        if (["Cartoon", "Watercolor Painting"].includes(aspect)) {
             if (!flag) {
                 console.log("dall-e로 생성\n\n");
                 imageUrl = await generateDalleImage(summarizedPrompt, aspect, mood);
@@ -231,7 +179,7 @@ app.post('/generate-image', async (req, res) => {
                 console.log("ideo로 생성\n\n");
                 imageUrl = await generateIdeogramImage(summarizedPrompt, temp, aspect, mood);
             }
-        } else if (["광고", "제품 렌더링", "정보 그래픽"].includes(aspect)) {
+        } else if (["Advertisement", "제품 렌더링", "Illustration", "Poster"].includes(aspect)) {
             // mood 값 검증 및 기본값 설정
             if (!["AUTO", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D"].includes(mood)) {
                 console.log("유효하지 않은 mood 값입니다. 기본값 AUTO로 설정.");
@@ -482,7 +430,7 @@ app.post('/api/sendNumbers', async (req, res) => {
             body: JSON.stringify({
                 sendimagePath,
                 sendNumbers,
-                messageContent : values.prompt
+                messageContent: values.prompt
             })
         });
 

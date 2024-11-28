@@ -133,7 +133,8 @@ button:hover {
 
 button:disabled {
     background-color: #9E9E9E; /* Accent Color */
-    color: rgba(255, 255, 255, 0.7);
+    color: black;
+    font-weight: bold; /* 텍스트를 굵게 */
     cursor: not-allowed;
     box-shadow: none;
     opacity: 0.6;
