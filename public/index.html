@@ -381,6 +381,24 @@
             console.log("선택이 초기화되었습니다."); // 선택 초기화 확인 메시지
         });
 
+
+        const loadPhonebook2 = () => {
+            fetch('/api/phonebook2')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('네트워크 응답이 실패했습니다.');
+                    }
+                    return response.json(); // 응답을 JSON으로 변환
+                })
+                .then(data => {
+                    console.log("dddddd", data);
+                    historyData = data.message_history
+                })
+                .catch(err => {
+                    console.error('요청 실패:', err);
+                });
+        }
+        
         //발송하기
         document.getElementById('send-button').addEventListener('click', () => {
             // 추가하려는 데이터
@@ -416,9 +434,10 @@
                 .catch(err => {
                     console.error('요청 실패:', err);
                 });
-                loadPhonebook();
+                loadPhonebook2();
         });
 
+        
 
         // 팝업 관련 코드 추가 ------------------------------------
 
